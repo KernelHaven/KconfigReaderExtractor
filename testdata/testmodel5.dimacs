@@ -1,0 +1,3 @@
+c 1 ARCH_HWEIGHT_CFLAGS=-fcall-saved-ecx -fcall-saved-edx
+p cnf 1 1
+-1

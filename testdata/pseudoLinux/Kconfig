@@ -1,0 +1,9 @@
+config A
+	bool "Variable A"
+
+config B
+    bool "Variable B"
+    depends on A
+
+config C
+    tristate "A tristate"
