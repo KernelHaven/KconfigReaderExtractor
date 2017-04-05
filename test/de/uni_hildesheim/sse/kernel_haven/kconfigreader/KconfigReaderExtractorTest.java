@@ -36,7 +36,9 @@ public class KconfigReaderExtractorTest {
     @After
     public void tearDown() {
         for (File file : RESOURCE_DIR.listFiles()) {
-            file.delete();
+            if (!file.getName().equals(".gitignore")) {
+                file.delete();
+            }
         }
     }
     

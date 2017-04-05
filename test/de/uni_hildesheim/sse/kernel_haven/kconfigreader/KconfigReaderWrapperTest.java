@@ -32,11 +32,11 @@ import de.uni_hildesheim.sse.kernel_haven.util.Logger;
 public class KconfigReaderWrapperTest {
 
     private static final File LINUX_DIR = new File("testdata/pseudoLinux/");
-    
+
     private static final File RESOURCE_DIR = new File("testdata/tmp_res");
 
     private KconfigReaderWrapper wrapper;
-    
+
     /**
      * Initializes the logger.
      */
@@ -44,7 +44,7 @@ public class KconfigReaderWrapperTest {
     public static void beforeClass() {
         Logger.init();
     }
-    
+
     /**
      * Creates a new wrapper object for each test.
      */
@@ -52,14 +52,16 @@ public class KconfigReaderWrapperTest {
     public void setUp() {
         wrapper = new KconfigReaderWrapper(RESOURCE_DIR, LINUX_DIR);
     }
-    
+
     /**
      * Cleans the resource directory after each test.
      */
     @After
     public void tearDown() {
         for (File file : RESOURCE_DIR.listFiles()) {
-            file.delete();
+            if (!file.getName().equals(".gitignore")) {
+                file.delete();
+            }
         }
     }
 
@@ -72,7 +74,7 @@ public class KconfigReaderWrapperTest {
     @Test
     public void testPrepareLinux() throws IOException {
         Assume.assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("win"));
-        
+
         assertThat(wrapper.prepareLinux(), is(true));
 
         File logfile = new File(LINUX_DIR, "test.log");
@@ -117,23 +119,23 @@ public class KconfigReaderWrapperTest {
     @Test
     public void testRunKconfigReader() throws IOException {
         Assume.assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("win"));
-        
+
         File dumpconfExe = new File("testdata/dumpconf");
-        
+
         // prerequisites
         dumpconfExe.setExecutable(true);
         assertThat(dumpconfExe.canExecute(), is(true));
-        
+
         File basepath = wrapper.runKconfigReader(dumpconfExe, "x86");
         assertThat(basepath, notNullValue());
-        
+
         // features check
         Set<String> allowedSet = new HashSet<>();
         allowedSet.add("CONFIG_A");
         allowedSet.add("CONFIG_B");
         allowedSet.add("CONFIG_C");
         allowedSet.add("CONFIG_C_MODULE");
-        
+
         File modules = new File(basepath.getAbsoluteFile() + ".features");
         assertThat(modules.isFile(), is(true));
         BufferedReader br = new BufferedReader(new FileReader(modules));
@@ -145,13 +147,13 @@ public class KconfigReaderWrapperTest {
         }
 
         br.close();
-        
+
         // dimacs check
         File dimacs = new File(basepath.getAbsoluteFile() + ".dimacs");
         assertThat(dimacs.isFile(), is(true));
-        
+
         // TODO: check if dimacs is valid
-        
+
         // clean up dimacs
         File[] files = modules.getParentFile().listFiles(new FilenameFilter() {
             @Override
@@ -159,7 +161,7 @@ public class KconfigReaderWrapperTest {
                 return name.startsWith(basepath.getName());
             }
         });
-        
+
         for (File file : files) {
             file.delete();
         }
