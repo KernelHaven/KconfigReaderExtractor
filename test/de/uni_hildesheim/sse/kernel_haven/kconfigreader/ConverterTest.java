@@ -22,15 +22,15 @@ import de.uni_hildesheim.sse.kernel_haven.variability_model.VariabilityVariable;
  */
 public class ConverterTest {
 
-    private static final File DIMACS_PATH = new File("testdata/testmodel.dimacs");
+    private static final File DIMACS_PATH = new File("testdata/testmodel");
     
-    private static final File DIMACS_PATH2 = new File("testdata/testmodel2.dimacs");
+    private static final File DIMACS_PATH2 = new File("testdata/testmodel2");
     
-    private static final File DIMACS_PATH3 = new File("testdata/testmodel3.dimacs");
+    private static final File DIMACS_PATH3 = new File("testdata/testmodel3");
     
-    private static final File DIMACS_PATH4 = new File("testdata/testmodel4.dimacs");
+    private static final File DIMACS_PATH4 = new File("testdata/testmodel4");
     
-    private static final File DIMACS_PATH5 = new File("testdata/testmodel5.dimacs");
+    private static final File DIMACS_PATH5 = new File("testdata/testmodel5");
 
     /**
      * Test if variables are correctly read from the feature file.
@@ -66,7 +66,7 @@ public class ConverterTest {
         Converter converter = new Converter(DIMACS_PATH);
 
         VariabilityModel vm = converter.convert();
-        assertThat(vm.getConstraintModel(), is(DIMACS_PATH));
+        assertThat(vm.getConstraintModel().getAbsolutePath(), is(DIMACS_PATH.getAbsolutePath() + ".dimacs"));
     }
     
     /**
@@ -114,7 +114,9 @@ public class ConverterTest {
         
         assertThat(vm.getVariables().size(), is(1));
         for (VariabilityVariable var : vm.getVariables()) {
-            assertThat(var.getName(), is("CONFIG_ARCH_HWEIGHT_CFLAGS=-fcall-saved-ecx -fcall-saved-edx"));
+            assertThat(var.getName(), is("CONFIG_ARCH_HWEIGHT_CFLAGS"));
+            assertThat(var.getType(), is("integer"));
+            assertThat(var.getDimacsNumber(), is(0));
         }
     }
     

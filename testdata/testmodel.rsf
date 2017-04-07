@@ -1,0 +1,19 @@
+
+.
+<submenu>
+    <menu>
+        <symbol type="tristate" flags="41216" id="21389217">
+            <name>ALPHA</name>
+        </symbol>
+    </menu>
+    <menu>
+        <symbol type="tristate" flags="41216" id="822323">
+            <name>BETA</name>
+        </symbol>
+    </menu>
+    <menu>
+        <symbol type="boolean" flags="41216" id="324234">
+            <name>GAMMA</name>
+        </symbol>
+    </menu>
+</submenu>

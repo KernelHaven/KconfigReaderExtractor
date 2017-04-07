@@ -149,7 +149,7 @@ public class KconfigReaderExtractor implements IVariabilityModelExtractor, Runna
         if (outputBase != null && !isStopRequested()) {
             LOGGER.logDebug("KconfigReader run successful", "Output is at: " + outputBase.getAbsolutePath());
 
-            Converter converter = new Converter(new File(outputBase.getAbsolutePath() + ".dimacs"));
+            Converter converter = new Converter(outputBase);
             VariabilityModel result = null;
             try {
                 result = converter.convert();

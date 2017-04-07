@@ -1,0 +1,9 @@
+
+.
+<submenu>
+    <menu>
+        <symbol type="integer" flags="41216" id="21389217">
+            <name>ARCH_HWEIGHT_CFLAGS</name>
+        </symbol>
+    </menu>
+</submenu>
