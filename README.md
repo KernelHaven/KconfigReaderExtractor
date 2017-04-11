@@ -1,4 +1,4 @@
-# KconfigReaderExtractor
+# KconfigReaderExtractor ![Build Status of KconfigReaderExtractor](http://jenkins.sse.uni-hildesheim.de/buildStatus/icon?job=KernelHaven_KconfigReaderExtractor)
 [KconfigReader](https://github.com/ckaestne/kconfigreader)
 -based Kconfig extractor for KernelHaven
 
