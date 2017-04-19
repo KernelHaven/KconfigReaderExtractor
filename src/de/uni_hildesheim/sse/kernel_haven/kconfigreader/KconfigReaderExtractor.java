@@ -218,7 +218,7 @@ public class KconfigReaderExtractor implements IVariabilityModelExtractor, Runna
      */
     private void useTheSourceLuke(Map<String, VariabilityVariable> vars, File file) {
 
-        Pattern pattern = Pattern.compile("^[^#]*config ([A-Za-z0-9_]+)");
+        Pattern pattern = Pattern.compile("^[^#]*config\\s*([A-Za-z0-9_]+)");
 
         BufferedReader in = null;
         try {
