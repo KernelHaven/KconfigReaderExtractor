@@ -7,9 +7,9 @@ This extractor reads the Kconfig model. To do that, it has to modify the Linux
 source tree by calling `make allyesconfig prepare` on it. Be aware that this
 overrides any previously present `.config` file in the Linux source tree.
 
-## Build and Install
-### Testing
-The rests require a Linux system with installed `build-essential` package. On Ubuntu this package may be installed via:
+## Depdencies
+This extractor needs a C compiler and make to be installed on the system it is
+running on. On Ubuntu just install the `build-essential` package via:
 `sudo apt-get install build-essential`
 
 ## License
