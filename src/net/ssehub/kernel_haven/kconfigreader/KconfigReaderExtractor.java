@@ -1,4 +1,4 @@
-package de.uni_hildesheim.sse.kernel_haven.kconfigreader;
+package net.ssehub.kernel_haven.kconfigreader;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -8,16 +8,16 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import de.uni_hildesheim.sse.kernel_haven.SetUpException;
-import de.uni_hildesheim.sse.kernel_haven.config.VariabilityExtractorConfiguration;
-import de.uni_hildesheim.sse.kernel_haven.util.ExtractorException;
-import de.uni_hildesheim.sse.kernel_haven.util.FormatException;
-import de.uni_hildesheim.sse.kernel_haven.util.Logger;
-import de.uni_hildesheim.sse.kernel_haven.variability_model.SourceLocation;
-import de.uni_hildesheim.sse.kernel_haven.variability_model.IVariabilityModelExtractor;
-import de.uni_hildesheim.sse.kernel_haven.variability_model.VariabilityModel;
-import de.uni_hildesheim.sse.kernel_haven.variability_model.VariabilityModelProvider;
-import de.uni_hildesheim.sse.kernel_haven.variability_model.VariabilityVariable;
+import net.ssehub.kernel_haven.SetUpException;
+import net.ssehub.kernel_haven.config.VariabilityExtractorConfiguration;
+import net.ssehub.kernel_haven.util.ExtractorException;
+import net.ssehub.kernel_haven.util.FormatException;
+import net.ssehub.kernel_haven.util.Logger;
+import net.ssehub.kernel_haven.variability_model.IVariabilityModelExtractor;
+import net.ssehub.kernel_haven.variability_model.SourceLocation;
+import net.ssehub.kernel_haven.variability_model.VariabilityModel;
+import net.ssehub.kernel_haven.variability_model.VariabilityModelProvider;
+import net.ssehub.kernel_haven.variability_model.VariabilityVariable;
 
 /**
  * Wrapper to run KconfigReader.

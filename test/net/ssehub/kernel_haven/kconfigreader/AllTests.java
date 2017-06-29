@@ -1,4 +1,4 @@
-package de.uni_hildesheim.sse.kernel_haven.kconfigreader;
+package net.ssehub.kernel_haven.kconfigreader;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;

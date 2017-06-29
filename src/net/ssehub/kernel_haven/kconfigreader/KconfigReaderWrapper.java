@@ -1,15 +1,15 @@
-package de.uni_hildesheim.sse.kernel_haven.kconfigreader;
+package net.ssehub.kernel_haven.kconfigreader;
 
 import java.io.File;
 import java.io.IOException;
 
-import de.uni_hildesheim.sse.kernel_haven.util.Logger;
-import de.uni_hildesheim.sse.kernel_haven.util.Util;
+import net.ssehub.kernel_haven.util.Logger;
+import net.ssehub.kernel_haven.util.Util;
 
 /**
  * Methods for running the Linux processes required for KconfigReader.
  * All these methods only work on a Linux system, which has a gcc compiler installed.
- * Needs the resources from the {@link de.uni_hildesheim.sse.kernel_haven.kconfigreader.res} package.
+ * Needs the resources from the {@link net.ssehub.kernel_haven.kconfigreader.res} package.
  * 
  * @author Adam
  * @author Johannes
@@ -66,7 +66,7 @@ public class KconfigReaderWrapper {
         // extract dumpconf.c to temporary file
         File dumpconfSource = new File(resourceDir, "dumpconf.c");
         if (!dumpconfSource.isFile()) {
-            Util.extractJarResourceToFile("de/uni_hildesheim/sse/kernel_haven/kconfigreader/res/dumpconf.c",
+            Util.extractJarResourceToFile("net/ssehub/kernel_haven/kconfigreader/res/dumpconf.c",
                     dumpconfSource);
         }
         File dumpconfExe = File.createTempFile("dumpconf", ".exe");
@@ -100,7 +100,7 @@ public class KconfigReaderWrapper {
         // extract jar to run kconfigreader
         File kconfigReaderJar = new File(resourceDir, "kconfigreader.jar");
         if (!kconfigReaderJar.isFile()) {
-            Util.extractJarResourceToFile("de/uni_hildesheim/sse/kernel_haven/kconfigreader/res/kconfigreader.jar",
+            Util.extractJarResourceToFile("net/ssehub/kernel_haven/kconfigreader/res/kconfigreader.jar",
                     kconfigReaderJar);
         }
         

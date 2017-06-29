@@ -1,4 +1,4 @@
-package de.uni_hildesheim.sse.kernel_haven.kconfigreader;
+package net.ssehub.kernel_haven.kconfigreader;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -19,9 +19,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
-import de.uni_hildesheim.sse.kernel_haven.util.FormatException;
-import de.uni_hildesheim.sse.kernel_haven.variability_model.VariabilityModel;
-import de.uni_hildesheim.sse.kernel_haven.variability_model.VariabilityVariable;
+import net.ssehub.kernel_haven.util.FormatException;
+import net.ssehub.kernel_haven.variability_model.VariabilityModel;
+import net.ssehub.kernel_haven.variability_model.VariabilityVariable;
 
 /**
  * Converter for converting the DIMACS output of KconfigReader to a

@@ -1,4 +1,4 @@
-package de.uni_hildesheim.sse.kernel_haven.kconfigreader;
+package net.ssehub.kernel_haven.kconfigreader;
 
 import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.CoreMatchers.is;
@@ -10,9 +10,9 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import de.uni_hildesheim.sse.kernel_haven.util.FormatException;
-import de.uni_hildesheim.sse.kernel_haven.variability_model.VariabilityModel;
-import de.uni_hildesheim.sse.kernel_haven.variability_model.VariabilityVariable;
+import net.ssehub.kernel_haven.util.FormatException;
+import net.ssehub.kernel_haven.variability_model.VariabilityModel;
+import net.ssehub.kernel_haven.variability_model.VariabilityVariable;
 
 /**
  * Tests for Converter.

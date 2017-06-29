@@ -1,11 +1,11 @@
-package de.uni_hildesheim.sse.kernel_haven.kconfigreader;
+package net.ssehub.kernel_haven.kconfigreader;
 
 import java.util.List;
 import java.util.Map;
 
-import de.uni_hildesheim.sse.kernel_haven.util.FormatException;
-import de.uni_hildesheim.sse.kernel_haven.variability_model.SourceLocation;
-import de.uni_hildesheim.sse.kernel_haven.variability_model.VariabilityVariable;
+import net.ssehub.kernel_haven.util.FormatException;
+import net.ssehub.kernel_haven.variability_model.SourceLocation;
+import net.ssehub.kernel_haven.variability_model.VariabilityVariable;
 
 /**
  * A variability variable of type tristate. This additionally saves the DIMACS
