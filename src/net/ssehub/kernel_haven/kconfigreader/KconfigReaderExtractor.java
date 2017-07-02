@@ -13,10 +13,9 @@ import net.ssehub.kernel_haven.config.VariabilityExtractorConfiguration;
 import net.ssehub.kernel_haven.util.ExtractorException;
 import net.ssehub.kernel_haven.util.FormatException;
 import net.ssehub.kernel_haven.util.Logger;
-import net.ssehub.kernel_haven.variability_model.IVariabilityModelExtractor;
+import net.ssehub.kernel_haven.variability_model.AbstractVariabilityModelExtractor;
 import net.ssehub.kernel_haven.variability_model.SourceLocation;
 import net.ssehub.kernel_haven.variability_model.VariabilityModel;
-import net.ssehub.kernel_haven.variability_model.VariabilityModelProvider;
 import net.ssehub.kernel_haven.variability_model.VariabilityVariable;
 
 /**
@@ -27,7 +26,7 @@ import net.ssehub.kernel_haven.variability_model.VariabilityVariable;
  * @author Johannes
  * @author Moritz
  */
-public class KconfigReaderExtractor implements IVariabilityModelExtractor, Runnable {
+public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
 
     private static final Logger LOGGER = Logger.get();
 
@@ -46,29 +45,14 @@ public class KconfigReaderExtractor implements IVariabilityModelExtractor, Runna
      * The architecture to analyze.
      */
     private String arch;
-
-    /**
-     * The provider to notify about results.
-     */
-    private VariabilityModelProvider provider;
-
+    
     /**
      * The directory where this extractor can store its resources. Not null.
      */
     private File resourceDir;
-
-    private boolean stopRequested;
-
-    /**
-     * Creates a new KconfigReader wrapper.
-     * 
-     * @param config
-     *            The configuration. Must not be null.
-     * 
-     * @throws SetUpException
-     *             If the configuration is not valid.
-     */
-    public KconfigReaderExtractor(VariabilityExtractorConfiguration config) throws SetUpException {
+    
+    @Override
+    protected void init(VariabilityExtractorConfiguration config) throws SetUpException {
         linuxSourceTree = config.getSourceTree();
         if (linuxSourceTree == null) {
             throw new SetUpException("Config does not contain source_tree setting");
@@ -84,46 +68,7 @@ public class KconfigReaderExtractor implements IVariabilityModelExtractor, Runna
     }
 
     @Override
-    public void setProvider(VariabilityModelProvider provider) {
-        this.provider = provider;
-    }
-
-    @Override
-    public void start() {
-        Thread th = new Thread(this);
-        th.setName("KconfigReaderExtractor");
-        th.start();
-    }
-
-    @Override
-    public void stop() {
-        synchronized (this) {
-            stopRequested = true;
-        }
-    }
-
-    /**
-     * Checks if the provider requested that we stop our extraction.
-     * 
-     * @return Whether stop is requested.
-     */
-    private synchronized boolean isStopRequested() {
-        return stopRequested;
-    }
-
-    /**
-     * A complete execution of the KconfigReader. This does the following
-     * things:
-     * <ol>
-     * <li>Prepare the Linux kernel by calling make</li>
-     * <li>Compile dumpconf against the Linux kernel</li>
-     * <li>Run KconfigReader on the Linux kernel</li>
-     * <li>Convert the output of KconfigReader</li>
-     * <li>Notify the output converter</li>
-     * </ol>
-     */
-    @Override
-    public void run() {
+    protected VariabilityModel runOnFile(File target) throws ExtractorException {
         LOGGER.logDebug("Starting extraction");
 
         File outputBase = null;
@@ -132,48 +77,39 @@ public class KconfigReaderExtractor implements IVariabilityModelExtractor, Runna
             KconfigReaderWrapper wrapper = new KconfigReaderWrapper(resourceDir, linuxSourceTree);
 
             boolean makeSuccess = wrapper.prepareLinux();
-            if (makeSuccess && !isStopRequested()) {
+            if (makeSuccess) {
                 File dumpconfExe = wrapper.compileDumpconf();
-                if (dumpconfExe != null && !isStopRequested()) {
+                if (dumpconfExe != null) {
                     outputBase = wrapper.runKconfigReader(dumpconfExe, arch);
                     dumpconfExe.delete();
                 }
             }
         } catch (IOException e) {
-            LOGGER.logException("Exception while running KconfigReader", e);
-            if (!isStopRequested()) {
-                provider.setException(new ExtractorException(e));
-            }
+            throw new ExtractorException(e);
         }
 
-        if (outputBase != null && !isStopRequested()) {
-            LOGGER.logDebug("KconfigReader run successful", "Output is at: " + outputBase.getAbsolutePath());
-
-            Converter converter = new Converter(outputBase);
-            VariabilityModel result = null;
-            try {
-                result = converter.convert();
-            } catch (IOException | FormatException e) {
-                LOGGER.logException("Exception while parsing KconfigReader output", e);
-                if (!isStopRequested()) {
-                    provider.setException(new ExtractorException(e));
-                }
-            }
-
-            if (result != null && !isStopRequested() && findSourceLocations) {
-                findSourceLocations(result);
-            }
-
-            if (result != null && !isStopRequested()) {
-                provider.setResult(result);
-            }
-
-        } else if (!isStopRequested()) {
-            LOGGER.logError("KconfigReader run not successful");
-            provider.setException(new ExtractorException("KconfigReader run not succesful"));
+        if (outputBase == null) {
+            throw new ExtractorException("KconfigReader run not succesful");
         }
+        
+        LOGGER.logDebug("KconfigReader run successful", "Output is at: " + outputBase.getAbsolutePath());
+
+        Converter converter = new Converter(outputBase);
+        VariabilityModel result = null;
+        try {
+            result = converter.convert();
+        } catch (IOException | FormatException e) {
+            LOGGER.logException("Exception while parsing KconfigReader output", e);
+            throw new ExtractorException(e);
+        }
+
+        if (result != null && findSourceLocations) {
+            findSourceLocations(result);
+        }
+
+        return result;
     }
-
+    
     /**
      * 
      * Finds the corresponding location in the sourcefiles for the variables
@@ -249,6 +185,11 @@ public class KconfigReaderExtractor implements IVariabilityModelExtractor, Runna
                 }
             }
         }
+    }
+
+    @Override
+    protected String getName() {
+        return "KconfigReaderExtractor";
     }
 
 }

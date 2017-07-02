@@ -58,7 +58,8 @@ public class KconfigReaderExtractorTest {
         props.setProperty("arch", "x86");
         TestConfiguration config = new TestConfiguration(props);
 
-        KconfigReaderExtractor extractor = new KconfigReaderExtractor(config.getVariabilityConfiguration());
+        KconfigReaderExtractor extractor = new KconfigReaderExtractor();
+        extractor.init(config.getVariabilityConfiguration());
 
         Set<VariabilityVariable> variables = new HashSet<>();
         variables.add(new VariabilityVariable("CONFIG_A", "bool"));
