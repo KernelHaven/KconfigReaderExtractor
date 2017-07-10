@@ -9,7 +9,7 @@ This extractor reads the Kconfig model of the Linux Kernel. To do that, it has t
 
 ## Usage
 
-To use this extractor, set `variability.extractor.class` to `net.ssehub.kernel_haven.kconfigreader.KconfigReaderExtractorFactory` in the KernelHaven properties.
+To use this extractor, set `variability.extractor.class` to `net.ssehub.kernel_haven.kconfigreader.KconfigReaderExtractor` in the KernelHaven properties.
 
 ### Dependencies
 
