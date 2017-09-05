@@ -31,26 +31,21 @@
 	</path>
 	
 	<!-- 
-	    Requires that the contents of http://projects.sse.uni-hildesheim.de/tools/ant-lib.zip
-	    is copied and placed at <user_home>/.ant/lib
-	    To execute this script from Eclipse, Eclipse requires that this folder is also specified at:
-	    Window -> Preferences -> ANT -> Runtime -> Add External Folder
-	  -->
-	  <path id="classpath.testing">
-	    <fileset dir="${lib.dir}" />
-	    <!-- Loads Junit from ANT installation folder -->
-	    <fileset dir="${user.home}/.ant/lib">
-	      <include name="junit*.jar"/>
-	      <include name="hamcrest*.jar"/>
-	    </fileset>
-	    <fileset dir="${dependencies.dir}" />
-	    <pathelement location="${test.classes.dir}" />
-	  </path>
-
-	<path id="checkstyle.classpath">
-		<fileset dir="${checkstyle.dir}" />
-
-	</path>
+    Requires that the contents of http://projects.sse.uni-hildesheim.de/tools/ant-lib.zip
+    is copied and placed at <user_home>/.ant/lib
+    To execute this script from Eclipse, Eclipse requires that this folder is also specified at:
+    Window -> Preferences -> ANT -> Runtime -> Add External Folder
+  -->
+  <path id="classpath.testing">
+    <fileset dir="${lib.dir}" />
+    <!-- Loads Junit from ANT installation folder -->
+    <fileset dir="${user.home}/.ant/lib">
+      <include name="junit*.jar"/>
+      <include name="hamcrest*.jar"/>
+    </fileset>
+    <fileset dir="${dependencies.dir}" />
+    <pathelement location="${test.classes.dir}" />
+  </path>
 
 	<taskdef uri="antlib:org.jacoco.ant" resource="org/jacoco/ant/antlib.xml"/>
 
