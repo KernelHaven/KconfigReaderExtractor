@@ -112,6 +112,11 @@
       <src path="${test.dir}"/>
       <classpath refid="classpath.testing" />
     </javac>
+		<copy todir="${test.classes.dir}">
+      <fileset dir="${src.dir}">
+        <exclude name="**/*.java" />
+      </fileset>
+    </copy>
     
     <copy todir="${test.classes.dir}/testdata">
       <fileset dir="testdata"/>
