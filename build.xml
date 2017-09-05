@@ -135,12 +135,12 @@
 						<include name="**/AllTests.java" />
 					</fileset>
 
-					<!-- include all resources from the src-package-folders -->
+					<!-- include all resources from the test-package-folders -->
 					<fileset dir="${test.dir}">
 						<exclude name="**/*.java" />
 					</fileset>
 
-					<!-- include all resources from the test-package-folders -->
+					<!-- include all resources from the src-package-folders -->
 					<fileset dir="${src.dir}">
 						<exclude name="**/*.java" />
 					</fileset>
