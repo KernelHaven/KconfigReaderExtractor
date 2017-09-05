@@ -3,8 +3,10 @@ package net.ssehub.kernel_haven.kconfigreader;
 import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Set;
 
@@ -31,6 +33,40 @@ public class ConverterTest {
     private static final File DIMACS_PATH4 = new File("testdata/testmodel4");
     
     private static final File DIMACS_PATH5 = new File("testdata/testmodel5");
+    
+    /**
+     * Creates the converter for a test case. Also checks that the .rsf file does not contain "\r\n" linefeeds.
+     * 
+     * @param path The outputBase to supply to the Converter.
+     * @return The converter for the test case.
+     */
+    private Converter init(File path) {
+        File rsfFile = new File(path.getPath() + ".rsf");
+        
+        if (rsfFile.isFile()) {
+            try (FileInputStream in = new FileInputStream(rsfFile)) {
+                
+                int read;
+                while ((read = in.read()) != -1) {
+                    if (read == '\r' && in.read() == '\n') {
+                        fail("Your checked out version of " + rsfFile.getPath() + " contains windows-style linefeeds ("
+                                + "\\r\\n); this breaks this unit test.\n"
+                                + "To fix this, tell git to not replace linefeeds with the windows version:\n"
+                                + "Set this globally:\ngit config --global core.autocrlf input\n"
+                                + "Or just for this repository:\ngit config --local core.autocrlf input\n"
+                                + "After adjusting the configuration, remove and re-checkout the offending file:\n"
+                                + "rm " + rsfFile.getPath() + "\n"
+                                + "git checkout -- " + rsfFile.getPath());
+                    }
+                }
+                
+            } catch (IOException e) {
+                // ignore...
+            }
+        }
+        
+        return new Converter(path);
+    }
 
     /**
      * Test if variables are correctly read from the feature file.
@@ -39,7 +75,7 @@ public class ConverterTest {
      */
     @Test
     public void testVariableConversion() throws IOException, FormatException {
-        Converter converter = new Converter(DIMACS_PATH);
+        Converter converter = init(DIMACS_PATH);
 
         VariabilityModel vm = converter.convert();
         Set<VariabilityVariable> vars = vm.getVariables(); 
@@ -63,7 +99,7 @@ public class ConverterTest {
      */
     @Test
     public void testDimacsFile() throws IOException, FormatException {
-        Converter converter = new Converter(DIMACS_PATH);
+        Converter converter = init(DIMACS_PATH);
 
         VariabilityModel vm = converter.convert();
         assertThat(vm.getConstraintModel().getAbsolutePath(), is(DIMACS_PATH.getAbsolutePath() + ".dimacs"));
@@ -76,7 +112,7 @@ public class ConverterTest {
      */
     @Test(expected = FormatException.class)
     public void testWrongOrder() throws IOException, FormatException {
-        Converter converter = new Converter(DIMACS_PATH2);
+        Converter converter = init(DIMACS_PATH2);
         converter.convert();
     }
     
@@ -87,7 +123,7 @@ public class ConverterTest {
      */
     @Test(expected = FormatException.class)
     public void testWrongFormatWrongNumber() throws IOException, FormatException {
-        Converter converter = new Converter(DIMACS_PATH3);
+        Converter converter = init(DIMACS_PATH3);
         converter.convert();
     }
     
@@ -98,7 +134,7 @@ public class ConverterTest {
      */
     @Test(expected = FormatException.class)
     public void testWrongFormatMissingC() throws IOException, FormatException {
-        Converter converter = new Converter(DIMACS_PATH4);
+        Converter converter = init(DIMACS_PATH4);
         converter.convert();
     }
 
@@ -109,7 +145,7 @@ public class ConverterTest {
      */
     @Test
     public void testSpaceInVarName() throws IOException, FormatException {
-        Converter converter = new Converter(DIMACS_PATH5);
+        Converter converter = init(DIMACS_PATH5);
         VariabilityModel vm = converter.convert();
         
         assertThat(vm.getVariables().size(), is(1));
