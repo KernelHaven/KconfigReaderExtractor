@@ -10,38 +10,49 @@
 	<property name="build.dir" value="${basedir}/build" />
 	<property name="dependencies.dir" value="${build.dir}/builddependencies" />
 	<property name="checkstyle.dir" value="${lib.dir}" />
-	<property name="checkstyle.file" value="${checkstyle.dir}/checkstyle-7.6-all.jar" />
 	<property name="jar.dir" value="${build.dir}/jar" />
-	<property name="jar.filename" value="kconfigreaderextractor.jar" />
-	<property name="jar.filename.withsource" value="kconfigreaderextractorwithsource.jar" />
+	<property name="test.classes.dir" value="${build.dir}/classes-tests" />
 	<property name="classes.dir" value="${build.dir}/classes" />
 	<property name="reports.dir" value="${build.dir}/reports" />
 	<property name="reports.xml.dir" value="${reports.dir}/xml" />
 	<property name="reports.html.dir" value="${reports.dir}/html" />
-	<property name="jacoco.dir" value="${lib.dir}" />
-	<property name="jacoco.file" value="${jacoco.dir}/jacocoant.jar" />
 	<property name="workspace.snapshot.dir" value="${build.dir}/workspacesnapshot/" />
+	<property name="jenkins.location" value="http://jenkins.sse.uni-hildesheim.de/job" />
+	<property name="infrastructure.location" value="${jenkins.location}/KernelHaven_Infrastructure/lastSuccessfulBuild/artifact/build/jar/KernelHaven_fortesting.jar" />
 
 	<!-- Modules that build -->
 	<property name="src.dir" value="${basedir}/src" />
 	<property name="test.dir" value="${basedir}/test" />
-
-
 
 	<path id="classpath.project">
 		<fileset dir="${lib.dir}" />
 		<fileset dir="${dependencies.dir}" />
 		<pathelement location="${classes.dir}" />
 	</path>
+	
+	<!-- 
+	    Requires that the contents of http://projects.sse.uni-hildesheim.de/tools/ant-lib.zip
+	    is copied and placed at <user_home>/.ant/lib
+	    To execute this script from Eclipse, Eclipse requires that this folder is also specified at:
+	    Window -> Preferences -> ANT -> Runtime -> Add External Folder
+	  -->
+	  <path id="classpath.testing">
+	    <fileset dir="${lib.dir}" />
+	    <!-- Loads Junit from ANT installation folder -->
+	    <fileset dir="${user.home}/.ant/lib">
+	      <include name="junit*.jar"/>
+	      <include name="hamcrest*.jar"/>
+	    </fileset>
+	    <fileset dir="${dependencies.dir}" />
+	    <pathelement location="${test.classes.dir}" />
+	  </path>
 
 	<path id="checkstyle.classpath">
 		<fileset dir="${checkstyle.dir}" />
 
 	</path>
 
-	<taskdef uri="antlib:org.jacoco.ant" resource="org/jacoco/ant/antlib.xml">
-		<classpath path="${jacoco.file}" />
-	</taskdef>
+	<taskdef uri="antlib:org.jacoco.ant" resource="org/jacoco/ant/antlib.xml"/>
 
 	<target name="jenkins" depends="compile">
 		<antcall target="test" />
@@ -49,30 +60,32 @@
 		<antcall target="jarwithsources" />
 		<antcall target="check" />
 		<antcall target="jacoco_report" />
-		<antcall target="zip_workspace" />
+		<!--antcall target="zip_workspace" /-->
 	</target>
 
 
 	<target name="jar">
-		<jar destfile="${jar.dir}/${jar.filename}" basedir="${classes.dir}" excludes="**/*Test.class, **/*Tests.class, **/package-info.class" />
+		<jar destfile="${jar.dir}/${ant.project.name}.jar" basedir="${classes.dir}" excludes="**/package-info.class" />
 	</target>
 
 
 	<target name="jarwithsources">
-		<jar destfile="${jar.dir}/${jar.filename.withsource}">
-			<fileset dir="${classes.dir}" excludes="**/*Test.class, **/*Tests.class, **/package-info.class" />
-			<fileset dir="${src.dir}" excludes="**/*Test.java, **/*Tests.java, **/package-info.java" />
+		<jar destfile="${jar.dir}/${ant.project.name}_withsource.jar">
+			<fileset dir="${classes.dir}" excludes="**/package-info.class" />
+			<fileset dir="${src.dir}" excludes="**/package-info.java" />
 		</jar>
 	</target>
 
-	<target name="init" depends="clean">
+	<target name="init">
+		<delete dir="${build.dir}" />
+
 		<mkdir dir="${lib.dir}" />
 		<mkdir dir="${classes.dir}" />
 		<mkdir dir="${build.dir}" />
 		<mkdir dir="${dependencies.dir}" />
 		<mkdir dir="${reports.xml.dir}" />
 		<mkdir dir="${reports.html.dir}" />
-		<get src="http://jenkins.sse.uni-hildesheim.de/job/KernelHaven_Infrastructure/lastSuccessfulBuild/artifact/build/jar/kernelhaven.jar" dest="${dependencies.dir}/kernelhaven.jar" />
+		<get src="${infrastructure.location}" dest="${dependencies.dir}/kernelhaven.jar" />
 	</target>
 
 
@@ -90,27 +103,24 @@
 				<exclude name="**/*.java" />
 			</fileset>
 		</copy>
-
-		<!-- compile test-classes -->
-		<javac srcdir="${test.dir}" destdir="${classes.dir}" debug="yes" includeantruntime="false">
-			<classpath refid="classpath.project" />
-		</javac>
-
-		<!-- copy resources for test-classes -->
-		<copy todir="${classes.dir}">
-			<fileset dir="${test.dir}">
-				<exclude name="**/*.java" />
-			</fileset>
-		</copy>
-
 	</target>
 
 	<target name="test">
+		<mkdir dir="${test.classes.dir}" />
+    <javac destdir="${test.classes.dir}" debug="yes" includeantruntime="false">
+      <src path="${src.dir}"/>
+      <src path="${test.dir}"/>
+      <classpath refid="classpath.testing" />
+    </javac>
+    
+    <copy todir="${test.classes.dir}/testdata">
+      <fileset dir="testdata"/>
+    </copy>
 		<jacoco:coverage destfile="${reports.dir}/jacoco.exec">
 			<junit fork="yes" dir="${basedir}" failureProperty="test.failed">
 				<!-- Note the classpath order: instrumented classes are before the original 
 	                (uninstrumented) classes. This is important. -->
-				<classpath refid="classpath.project" />
+				<classpath refid="classpath.testing" />
 
 				<formatter type="xml" />
 				<test name="${testcase}" todir="${reports.xml.dir}" if="testcase" />
@@ -145,7 +155,7 @@
 
 	<target name="check">
 
-		<taskdef resource="com/puppycrawl/tools/checkstyle/ant/checkstyle-ant-task.properties" classpath="${checkstyle.file}" />
+		<taskdef resource="com/puppycrawl/tools/checkstyle/ant/checkstyle-ant-task.properties" />
 
 		<checkstyle config="${basedir}/checkstyle.xml" failOnViolation="false">
 			<fileset dir="src/" includes="**/*.java" />
@@ -154,21 +164,24 @@
 		</checkstyle>
 	</target>
 
-	<target name="clean" description="Remove all files created by the build/test process.">
-		<delete dir="${classes.dir}" />
-		<delete dir="${reports.dir}" />
-	</target>
-
 	<target name="jacoco_report">
-
+		<mkdir dir="${test.classes.dir}" />
+    <javac destdir="${test.classes.dir}" debug="yes" includeantruntime="false">
+      <src path="${src.dir}"/>
+      <src path="${test.dir}"/>
+      <classpath refid="classpath.testing" />
+    </javac>
+    
+    <copy todir="${test.classes.dir}/testdata">
+      <fileset dir="testdata"/>
+    </copy>
 
 		<jacoco:report>
-
 			<executiondata>
 				<file file="${reports.dir}/jacoco.exec" />
 			</executiondata>
 
-			<structure name="KconfigReaderExtractor">
+			<structure name="${ant.project.name}">
 				<classfiles>
 					<fileset dir="${build.dir}/classes" />
 				</classfiles>
