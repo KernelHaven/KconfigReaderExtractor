@@ -19,7 +19,12 @@ In addition to KernelHaven, this extractor has the following dependencies:
 
 ### Configuration
 
-This extractor uses only the default configuration options in the KernelHaven properties.
+In addition to the default ones, this extractor has the following configuration options in the KernelHaven properties:
+
+| Key | Mandatory | Default | Example | Description |
+|-----|-----------|---------|---------|-------------|
+| `variability.extractor.find_locations` | No | `false` | `true` | If set to true, the extractor will store source locations for each variable. Those locations represent occurences of the variable in the files that kconfigreader used for generating the VariabilityMode. |
+
 
 ## License
 This extractor is licensed under GPLv3. Another license would be possible with following restrictions:
