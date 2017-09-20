@@ -77,19 +77,24 @@ public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
             KconfigReaderWrapper wrapper = new KconfigReaderWrapper(resourceDir, linuxSourceTree);
 
             boolean makeSuccess = wrapper.prepareLinux();
-            if (makeSuccess) {
-                File dumpconfExe = wrapper.compileDumpconf();
-                if (dumpconfExe != null) {
-                    outputBase = wrapper.runKconfigReader(dumpconfExe, arch);
-                    dumpconfExe.delete();
-                }
+            if (!makeSuccess) {
+                throw new ExtractorException("'make allyesconfig prepare' failed to execute");
+            }
+            
+            File dumpconfExe = wrapper.compileDumpconf();
+            if (dumpconfExe == null) {
+                throw new ExtractorException("Compiling dumpconf failed");
+            }
+            dumpconfExe.deleteOnExit();
+            
+            outputBase = wrapper.runKconfigReader(dumpconfExe, arch);
+            dumpconfExe.delete();
+            
+            if (outputBase == null) {
+                throw new ExtractorException("KconfigReader run not succesful");
             }
         } catch (IOException e) {
             throw new ExtractorException(e);
-        }
-
-        if (outputBase == null) {
-            throw new ExtractorException("KconfigReader run not succesful");
         }
         
         LOGGER.logDebug("KconfigReader run successful", "Output is at: " + outputBase.getAbsolutePath());
