@@ -2,6 +2,7 @@ package net.ssehub.kernel_haven.kconfigreader;
 
 import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -154,6 +155,73 @@ public class ConverterTest {
             assertThat(var.getType(), is("integer"));
             assertThat(var.getDimacsNumber(), is(0));
         }
+    }
+    
+    /**
+     * Tests whether a missing CONFIG_MODULES variable is handled properly.
+     * @throws IOException unwanted.
+     * @throws FormatException unwanted.
+     */
+    @Test
+    public void testMissingConfigModules() throws IOException, FormatException {
+        // testcase originally discovered in Saschas example product line (ICSE18 demo)
+        Converter converter = init(new File("testdata/testmodel6"));
+        VariabilityModel vm = converter.convert();
+        
+        assertThat(vm.getVariables().size(), is(9));
+        
+        VariabilityVariable modules = vm.getVariableMap().get("CONFIG_MODULES");
+        assertThat(modules, notNullValue());
+        assertThat(modules.getType(), is("bool"));
+        assertThat(modules.getDimacsNumber(), is(9));
+    }
+    
+    /**
+     * Tests whether variables that are only in DIMACS but not in RSF throw an error.
+     * @throws FormatException wanted.
+     * @throws IOException unwanted.
+     */
+    @Test(expected = FormatException.class)
+    public void testMissingInRsf() throws IOException, FormatException {
+        Converter converter = init(new File("testdata/testmodel7"));
+        converter.convert();
+    }
+    
+    /**
+     * Tests whether choices with explicit names are handled properly.
+     * @throws FormatException unwanted.
+     * @throws IOException unwanted.
+     */
+    @Test
+    public void testChoiceWithName() throws IOException, FormatException {
+     // testcase originally discovered in Saschas example product line (ICSE18 demo)
+        Converter converter = init(new File("testdata/testmodel6"));
+        VariabilityModel vm = converter.convert();
+        
+        assertThat(vm.getVariables().size(), is(9));
+        
+        VariabilityVariable choice = vm.getVariableMap().get("CONFIG_CALC_SELECTION");
+        assertThat(choice, notNullValue());
+        assertThat(choice.getType(), is("bool"));
+        assertThat(choice.getDimacsNumber(), is(1));
+    }
+    
+    /**
+     * Tests whether choices without explicit names are handled properly.
+     * @throws FormatException unwanted.
+     * @throws IOException unwanted.
+     */
+    @Test
+    public void testChoiceWithoutName() throws IOException, FormatException {
+        Converter converter = init(new File("testdata/testmodel8"));
+        VariabilityModel vm = converter.convert();
+        
+        assertThat(vm.getVariables().size(), is(9));
+        
+        VariabilityVariable choice = vm.getVariableMap().get("CONFIG_CHOICE_1");
+        assertThat(choice, notNullValue());
+        assertThat(choice.getType(), is("bool"));
+        assertThat(choice.getDimacsNumber(), is(1));
     }
     
 }

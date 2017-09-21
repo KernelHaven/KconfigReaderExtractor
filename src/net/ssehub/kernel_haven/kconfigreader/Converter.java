@@ -87,7 +87,17 @@ public class Converter {
             VariabilityVariable var = variables.get(name);
 
             if (var == null) {
-                throw new FormatException();
+                if (name.equals("CONFIG_MODULES")) {
+                    // special case: KconfigReader always adds CONFIG_MODULES to the DIMACS model, even if it
+                    // is not defined in the Kconfig files (I personally consider this a bug)
+                    // to work around the edge case, that Kconfig does not contain CONFIG_MODULES, we create this
+                    // variable here
+                    var = new VariabilityVariable("CONFIG_MODULES", "bool");
+                    variables.put(name, var);
+                    
+                } else {
+                    throw new FormatException("Found variable " + name + " in DIMACS but not in RSF");
+                }
             }
 
             if (var.getType().equals("bool")) {
@@ -251,11 +261,9 @@ public class Converter {
         }
 
         if (choice) {
-            if (name != null) {
-                throw new FormatException("Unexpected name in choice: " + name);
+            if (name == null) {
+                name = "CHOICE_" + (choiceId++);
             }
-            // TODO: choice
-            name = "CHOICE_" + (choiceId++);
         } else {
             if (name == null) {
                 throw new FormatException("No name found in symbol");

@@ -1,0 +1,74 @@
+
+.
+<submenu>
+<menu flags="0">
+<symbol type="boolean" flags="41216" id="21829872">
+<name>CALCULATION</name>
+<property type="?"><expr>S@21829872</expr></property>
+<property type="prompt"><text><![CDATA[Calculation demo]]></text></property>
+</symbol>
+</menu>
+<submenu>
+<menu flags="0">
+<symbol type="boolean" flags="45072" id="21830480">
+<name>CALC_SELECTION</name>
+<property type="?"><expr>S@21830480</expr><visible><expr>S@21829872</expr></visible></property>
+<property type="choice"><expr>(S@21831232 ^ (S@21831824))</expr><visible><expr>S@21829872</expr></visible></property>
+<property type="prompt"><text><![CDATA[Mathematical operation selection]]></text><visible><expr>S@21829872</expr></visible></property>
+</symbol>
+<dep>S@21829872</dep></menu>
+<submenu>
+<menu flags="0">
+<symbol type="boolean" flags="41248" id="21831232">
+<name>ADDITION</name>
+<property type="?"><expr>S@21831232</expr><visible><expr>S@21830480</expr></visible></property>
+<property type="prompt"><text><![CDATA[Addition demo]]></text><visible><expr>S@21830480</expr></visible></property>
+<property type="choice"><expr>S@21830480</expr></property>
+</symbol>
+<dep>S@21830480</dep></menu>
+<menu flags="0">
+<symbol type="boolean" flags="41248" id="21831824">
+<name>SUBTRACTION</name>
+<property type="?"><expr>S@21831824</expr><visible><expr>S@21830480</expr></visible></property>
+<property type="prompt"><text><![CDATA[Subtration demo]]></text><visible><expr>S@21830480</expr></visible></property>
+<property type="choice"><expr>S@21830480</expr></property>
+</symbol>
+<dep>S@21830480</dep></menu>
+</submenu>
+</submenu>
+<menu flags="0">
+<symbol type="boolean" flags="41216" id="21832416">
+<name>LOGGING</name>
+<property type="?"><expr>S@21832416</expr></property>
+<property type="prompt"><text><![CDATA[Logging demo]]></text></property>
+</symbol>
+</menu>
+<submenu>
+<menu flags="0">
+<symbol type="boolean" flags="45072" id="21833008">
+<name>LOG_SELECTION</name>
+<property type="?"><expr>S@21833008</expr><visible><expr>S@21832416</expr></visible></property>
+<property type="choice"><expr>(S@21833744 ^ (S@21834336))</expr><visible><expr>S@21832416</expr></visible></property>
+<property type="prompt"><text><![CDATA[Logging mechanism selection]]></text><visible><expr>S@21832416</expr></visible></property>
+</symbol>
+<dep>S@21832416</dep></menu>
+<submenu>
+<menu flags="0">
+<symbol type="boolean" flags="41248" id="21833744">
+<name>LOG_TO_CONSOLE</name>
+<property type="?"><expr>S@21833744</expr><visible><expr>S@21833008</expr></visible></property>
+<property type="prompt"><text><![CDATA[Log to console]]></text><visible><expr>S@21833008</expr></visible></property>
+<property type="choice"><expr>S@21833008</expr></property>
+</symbol>
+<dep>S@21833008</dep></menu>
+<menu flags="0">
+<symbol type="boolean" flags="41248" id="21834336">
+<name>LOG_TO_FILE</name>
+<property type="?"><expr>S@21834336</expr><visible><expr>S@21833008</expr></visible></property>
+<property type="prompt"><text><![CDATA[Log to file]]></text><visible><expr>S@21833008</expr></visible></property>
+<property type="choice"><expr>S@21833008</expr></property>
+</symbol>
+<dep>S@21833008</dep></menu>
+</submenu>
+</submenu>
+</submenu>

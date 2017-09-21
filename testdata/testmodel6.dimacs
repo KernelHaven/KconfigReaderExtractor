@@ -1,0 +1,35 @@
+c 9 MODULES
+c 7 ADDITION
+c 4 LOG_SELECTION
+c 1 CALC_SELECTION
+c 3 LOG_TO_FILE
+c 8 LOGGING
+c 2 CALCULATION
+c 6 SUBTRACTION
+c 5 LOG_TO_CONSOLE
+p cnf 9 25
+-1 2 0
+-2 1 0
+-1 2 0
+-1 2 0
+-3 4 0
+-3 4 0
+-5 4 0
+-5 4 0
+-6 1 0
+-6 1 0
+-7 1 0
+-7 1 0
+-4 8 0
+-8 4 0
+-4 8 0
+-4 8 0
+6 7 -1 0
+-6 1 0
+-7 1 0
+-6 -7 0
+3 5 -4 0
+-3 4 0
+-5 4 0
+-3 -5 0
+-9 0
