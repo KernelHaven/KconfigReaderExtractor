@@ -9,10 +9,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.ssehub.kernel_haven.SetUpException;
-import net.ssehub.kernel_haven.config.VariabilityExtractorConfiguration;
+import net.ssehub.kernel_haven.config.Configuration;
+import net.ssehub.kernel_haven.config.DefaultSettings;
+import net.ssehub.kernel_haven.config.Setting;
 import net.ssehub.kernel_haven.util.ExtractorException;
 import net.ssehub.kernel_haven.util.FormatException;
 import net.ssehub.kernel_haven.util.Logger;
+import net.ssehub.kernel_haven.util.Util;
 import net.ssehub.kernel_haven.variability_model.AbstractVariabilityModelExtractor;
 import net.ssehub.kernel_haven.variability_model.SourceLocation;
 import net.ssehub.kernel_haven.variability_model.VariabilityModel;
@@ -29,6 +32,9 @@ import net.ssehub.kernel_haven.variability_model.VariabilityVariable;
 public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
 
     private static final Logger LOGGER = Logger.get();
+    
+    private static final Setting<Boolean> FIND_LOCATIONS
+            = new Setting<>("variability.extractor.find_locations", Setting.Type.BOOLEAN, true, "false", "TODO");
 
     /**
      * The path to the linux source tree.
@@ -52,19 +58,17 @@ public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
     private File resourceDir;
     
     @Override
-    protected void init(VariabilityExtractorConfiguration config) throws SetUpException {
-        linuxSourceTree = config.getSourceTree();
-        if (linuxSourceTree == null) {
-            throw new SetUpException("Config does not contain source_tree setting");
-        }
-        arch = config.getArch();
+    protected void init(Configuration config) throws SetUpException {
+        linuxSourceTree = config.getValue(DefaultSettings.SOURCE_TREE);
+        arch = config.getValue(DefaultSettings.ARCH);
         if (arch == null) {
             throw new SetUpException("Config does not contain arch setting");
         }
         
-        findSourceLocations = Boolean.parseBoolean(config.getProperty("variability.extractor.find_locations"));
+        config.registerSetting(FIND_LOCATIONS);
+        findSourceLocations = config.getValue(FIND_LOCATIONS);
 
-        resourceDir = config.getExtractorResourceDir(getClass());
+        resourceDir = Util.getExtractorResourceDir(config, getClass());
     }
 
     @Override
