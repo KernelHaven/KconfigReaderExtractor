@@ -20,7 +20,7 @@ public class KconfigReaderWrapper {
     private static final Logger LOGGER = Logger.get();
 
     private File resourceDir;
-    
+
     private File linuxSourceTree;
     
     /**
