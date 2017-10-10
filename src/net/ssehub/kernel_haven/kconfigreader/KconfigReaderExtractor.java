@@ -34,7 +34,10 @@ public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
     private static final Logger LOGGER = Logger.get();
     
     private static final Setting<Boolean> FIND_LOCATIONS
-            = new Setting<>("variability.extractor.find_locations", Setting.Type.BOOLEAN, true, "false", "TODO");
+            = new Setting<>("variability.extractor.find_locations", Setting.Type.BOOLEAN, true, "false", "If set to "
+                    + "true, the extractor will store source locations for each variable. Those locations represent "
+                    + "occurences of the variable in the files that kconfigreader used for generating the "
+                    + "VariabilityModel.");
 
     /**
      * The path to the linux source tree.
