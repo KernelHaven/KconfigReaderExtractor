@@ -224,4 +224,23 @@ public class ConverterTest {
         assertThat(choice.getDimacsNumber(), is(1));
     }
     
+    /**
+     * Tests whether boolean variables with a name ending in _MODULE are treated correctly.
+     * 
+     * @throws FormatException unwanted.
+     * @throws IOException unwanted.
+     */
+    @Test
+    public void testBooleanVariableEndingWithModule() throws IOException, FormatException {
+        Converter converter = init(new File("testdata/testmodel9"));
+        VariabilityModel vm = converter.convert();
+        
+        assertThat(vm.getVariables().size(), is(1));
+        
+        VariabilityVariable var = vm.getVariableMap().get("CONFIG_ALPHA_MODULE");
+        assertThat(var, notNullValue());
+        assertThat(var.getType(), is("bool"));
+        assertThat(var.getDimacsNumber(), is(1));
+    }
+    
 }

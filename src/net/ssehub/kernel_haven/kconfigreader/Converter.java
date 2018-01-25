@@ -416,9 +416,28 @@ public class Converter {
             }
 
         }
-
+        
         Set<VariabilityVariable> result = new HashSet<>(variableCache.values());
         variableCache = null;
+        
+        // search for tristate variables that are missing the non _MODULE part (the boolean part).
+        // this means, that we found a _MODULE variable, but no corresponding variable without _MODULE
+        // convert these variables back to boolean type with _MODULE (i.e. they are boolean variables that simply
+        // happen to have a name ending in _MODULE)
+        for (VariabilityVariable var : result) {
+            if (var instanceof TristateVariable) {
+                TristateVariable tri = (TristateVariable) var;
+                
+                if (tri.getDimacsNumber() == 0) { // if we haven't found the non _MODULE part
+                    // replace this variable with a boolean one
+                    VariabilityVariable newVar = new VariabilityVariable(tri.getName() + "_MODULE", "bool",
+                            tri.getModuleNumber());
+                    result.remove(var);
+                    result.add(newVar);
+                }
+            }
+        }
+        
         return result;
     }
 
@@ -452,7 +471,7 @@ public class Converter {
             name = name.substring(0, name.length() - "_MODULE".length());
             int existingNumber = 0;
             if (variableCache.containsKey(name)) {
-                // the boolean part was already found earlier, so we reuuse its
+                // the boolean part was already found earlier, so we reuse its
                 // number
                 existingNumber = variableCache.get(name).getDimacsNumber();
             }
