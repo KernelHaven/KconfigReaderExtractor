@@ -85,6 +85,7 @@ public class KconfigReaderExtractorTest {
         VariabilityModel vm = extractor.runOnFile(new File("testdata/pseudoLinux"));
         
         assertThat(vm.getConstraintModel(), notNullValue());
+        System.out.println(vm.getConstraintModel());
         assertThat(vm.getConstraintModel().isFile(), is(true));
         
         Map<String, VariabilityVariable> vars = vm.getVariableMap();
