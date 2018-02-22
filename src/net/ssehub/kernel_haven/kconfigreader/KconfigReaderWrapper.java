@@ -120,6 +120,10 @@ public class KconfigReaderWrapper {
         
         boolean success = Util.executeProcess(processBuilder, "KconfigReader");
         
+        if (!success) {
+            KconfigReaderExtractor.deleteAllFiles(outputBase);
+        }
+        
         return success ? outputBase : null;
     }
     

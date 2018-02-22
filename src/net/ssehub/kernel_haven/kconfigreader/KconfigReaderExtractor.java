@@ -16,6 +16,7 @@ import net.ssehub.kernel_haven.util.ExtractorException;
 import net.ssehub.kernel_haven.util.FormatException;
 import net.ssehub.kernel_haven.util.Logger;
 import net.ssehub.kernel_haven.util.Util;
+import net.ssehub.kernel_haven.util.null_checks.NonNull;
 import net.ssehub.kernel_haven.variability_model.AbstractVariabilityModelExtractor;
 import net.ssehub.kernel_haven.variability_model.SourceLocation;
 import net.ssehub.kernel_haven.variability_model.VariabilityModel;
@@ -100,7 +101,10 @@ public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
             if (outputBase == null) {
                 throw new ExtractorException("KconfigReader run not succesful");
             }
+            
         } catch (IOException e) {
+            // outputBase can only be null here; no cleanup needed
+            
             throw new ExtractorException(e);
         }
         
@@ -110,9 +114,13 @@ public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
         VariabilityModel result = null;
         try {
             result = converter.convert();
+            
         } catch (IOException | FormatException e) {
             LOGGER.logException("Exception while parsing KconfigReader output", e);
             throw new ExtractorException(e);
+            
+        } finally {
+            deleteAllFiles(outputBase);
         }
 
         if (result != null && findSourceLocations) {
@@ -120,6 +128,24 @@ public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
         }
 
         return result;
+    }
+    
+    /**
+     * Deletes all files that start with outputBase. This is useful to clean up the temporary output files that
+     * KconfigReader creates.
+     * 
+     * @param outputBase The base name of all files to delete.
+     */
+    static void deleteAllFiles(@NonNull File outputBase) {
+        LOGGER.logDebug("Deleting temporary files at " + outputBase);
+        
+        File folder = outputBase.getParentFile();
+        
+        for (File child : folder.listFiles()) {
+            if (child.getName().startsWith(outputBase.getName()) && child.isFile()) {
+                child.delete();
+            }
+        }
     }
     
     /**
