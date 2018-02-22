@@ -91,6 +91,7 @@ public class KconfigReaderExtractorTest {
         assertThat(vm.getConstraintModel().isFile(), is(true));
         
         Map<String, VariabilityVariable> vars = vm.getVariableMap();
+        System.out.println(vars);
         assertThat(vars.get("CONFIG_A"), notNullValue());
         assertThat(vars.get("CONFIG_B"), notNullValue());
         assertThat(vars.get("CONFIG_C"), notNullValue());
