@@ -1,19 +1,27 @@
 package net.ssehub.kernel_haven.kconfigreader;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
 import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import net.ssehub.kernel_haven.SetUpException;
 import net.ssehub.kernel_haven.test_utils.TestConfiguration;
+import net.ssehub.kernel_haven.util.ExtractorException;
+import net.ssehub.kernel_haven.util.Logger;
+import net.ssehub.kernel_haven.util.Util;
 import net.ssehub.kernel_haven.variability_model.SourceLocation;
 import net.ssehub.kernel_haven.variability_model.VariabilityModel;
 import net.ssehub.kernel_haven.variability_model.VariabilityVariable;
@@ -29,17 +37,65 @@ import net.ssehub.kernel_haven.variability_model.VariabilityVariable;
 public class KconfigReaderExtractorTest {
     
     private static final File RESOURCE_DIR = new File("testdata/tmp_res");
-
+    
     /**
-     * Cleans the resource directory after each test.
+     * Initializes the logger.
+     */
+    @BeforeClass
+    public static void initLogger() {
+        Logger.init();
+    }
+    
+    /**
+     * Creates the temporary resource dir.
+     */
+    @Before
+    public void createTmpRes() {
+        RESOURCE_DIR.mkdir();
+    }
+    
+    /**
+     * Deletes the temporary resource directory.
+     * 
+     * @throws IOException If deleting fails.
      */
     @After
-    public void tearDown() {
-        for (File file : RESOURCE_DIR.listFiles()) {
-            if (!file.getName().equals(".gitignore")) {
-                file.delete();
-            }
-        }
+    public void deleteTmpRes() throws IOException {
+        Util.deleteFolder(RESOURCE_DIR);
+    }
+    
+    /**
+     * Tests a full extractor execution on testdata/pseudoLinux.
+     * 
+     * @throws SetUpException unwanted.
+     * @throws ExtractorException unwanted.
+     */
+    @Test
+    public void testFullRunPseudoLinux() throws SetUpException, ExtractorException {
+        Properties props = new Properties();
+
+        props.setProperty("resource_dir", RESOURCE_DIR.getPath());
+        props.setProperty("source_tree", "testdata/pseudoLinux/");
+        props.setProperty("arch", "x86");
+        TestConfiguration config = new TestConfiguration(props);
+
+        KconfigReaderExtractor extractor = new KconfigReaderExtractor();
+        extractor.init(config);
+        
+        VariabilityModel vm = extractor.runOnFile(new File("testdata/pseudoLinux"));
+        
+        assertThat(vm.getConstraintModel(), notNullValue());
+        assertThat(vm.getConstraintModel().isFile(), is(true));
+        
+        Map<String, VariabilityVariable> vars = vm.getVariableMap();
+        assertThat(vars.get("CONFIG_A"), notNullValue());
+        assertThat(vars.get("CONFIG_B"), notNullValue());
+        assertThat(vars.get("CONFIG_C"), notNullValue());
+        assertThat(vars.size(), is(3));
+        
+        assertThat(vars.get("CONFIG_A").getType(), is("bool"));
+        assertThat(vars.get("CONFIG_B").getType(), is("bool"));
+        assertThat(vars.get("CONFIG_C").getType(), is("tristate"));
     }
     
     /**

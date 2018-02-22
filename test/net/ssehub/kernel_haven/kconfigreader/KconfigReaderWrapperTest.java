@@ -20,6 +20,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import net.ssehub.kernel_haven.util.Logger;
+import net.ssehub.kernel_haven.util.Util;
 
 /**
  * Tests the KconfigReaderWrapper. These tests can only run on Linux, since
@@ -46,23 +47,22 @@ public class KconfigReaderWrapperTest {
     }
 
     /**
-     * Creates a new wrapper object for each test.
+     * Creates a new wrapper object for each test and creates the resource dir.
      */
     @Before
     public void setUp() {
+        RESOURCE_DIR.mkdir();
         wrapper = new KconfigReaderWrapper(RESOURCE_DIR, LINUX_DIR);
     }
 
     /**
-     * Cleans the resource directory after each test.
+     * Deletes the resource directory after each test.
+     * 
+     * @throws IOException If deleting fails. 
      */
     @After
-    public void tearDown() {
-        for (File file : RESOURCE_DIR.listFiles()) {
-            if (!file.getName().equals(".gitignore")) {
-                file.delete();
-            }
-        }
+    public void tearDown() throws IOException {
+        Util.deleteFolder(RESOURCE_DIR);
     }
 
     /**
