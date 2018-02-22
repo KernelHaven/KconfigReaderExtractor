@@ -103,7 +103,8 @@ public class ConverterTest {
         Converter converter = init(DIMACS_PATH);
 
         VariabilityModel vm = converter.convert();
-        assertThat(vm.getConstraintModel().getAbsolutePath(), is(DIMACS_PATH.getAbsolutePath() + ".dimacs"));
+        assertThat(vm.getConstraintModel().isFile(), is(true));
+        // can't check file name, since it will be copied
     }
     
     /**

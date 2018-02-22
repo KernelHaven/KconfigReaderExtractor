@@ -13,6 +13,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -72,6 +73,8 @@ public class KconfigReaderExtractorTest {
      */
     @Test
     public void testFullRunPseudoLinux() throws SetUpException, ExtractorException {
+        Assume.assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("win"));
+        
         Properties props = new Properties();
 
         props.setProperty("resource_dir", RESOURCE_DIR.getPath());
