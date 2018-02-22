@@ -1,5 +1,7 @@
 package net.ssehub.kernel_haven.kconfigreader;
 
+import static net.ssehub.kernel_haven.util.null_checks.NullHelpers.notNull;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -34,7 +36,7 @@ public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
 
     private static final Logger LOGGER = Logger.get();
     
-    private static final Setting<Boolean> FIND_LOCATIONS
+    private static final @NonNull Setting<@NonNull Boolean> FIND_LOCATIONS
             = new Setting<>("variability.extractor.find_locations", Setting.Type.BOOLEAN, true, "false", "If set to "
                     + "true, the extractor will store source locations for each variable. Those locations represent "
                     + "occurences of the variable in the files that kconfigreader used for generating the "
@@ -62,7 +64,7 @@ public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
     private File resourceDir;
     
     @Override
-    protected void init(Configuration config) throws SetUpException {
+    protected void init(@NonNull Configuration config) throws SetUpException {
         linuxSourceTree = config.getValue(DefaultSettings.SOURCE_TREE);
         arch = config.getValue(DefaultSettings.ARCH);
         if (arch == null) {
@@ -76,7 +78,7 @@ public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
     }
 
     @Override
-    protected VariabilityModel runOnFile(File target) throws ExtractorException {
+    protected @NonNull VariabilityModel runOnFile(@NonNull File target) throws ExtractorException {
         LOGGER.logDebug("Starting extraction");
 
         File outputBase = null;
@@ -123,7 +125,7 @@ public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
             deleteAllFiles(outputBase);
         }
 
-        if (result != null && findSourceLocations) {
+        if (findSourceLocations) {
             findSourceLocations(result);
         }
 
@@ -156,9 +158,9 @@ public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
      * @param vm
      *            the VariabilityModel.
      */
-    void findSourceLocations(VariabilityModel vm) {
-        Map<String, VariabilityVariable> vars = vm.getVariableMap();
-        lukeFilewalker(vars, linuxSourceTree);
+    void findSourceLocations(@NonNull VariabilityModel vm) {
+        Map<@NonNull String, VariabilityVariable> vars = vm.getVariableMap();
+        lukeFilewalker(vars, notNull(linuxSourceTree));
     }
 
     /**
@@ -169,7 +171,7 @@ public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
      * @param dir
      *            the directory to use for finding the location.
      */
-    private void lukeFilewalker(Map<String, VariabilityVariable> vars, File dir) {
+    private void lukeFilewalker(@NonNull Map<@NonNull String, VariabilityVariable> vars, @NonNull File dir) {
         for (File file : dir.listFiles()) {
             if (file.isDirectory() && !file.getName().startsWith(".")) {
                 lukeFilewalker(vars, file);
@@ -190,7 +192,7 @@ public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
      * @param file
      *            the kconfig-file.
      */
-    private void useTheSourceLuke(Map<String, VariabilityVariable> vars, File file) {
+    private void useTheSourceLuke(@NonNull Map<@NonNull String, VariabilityVariable> vars, @NonNull File file) {
 
         Pattern pattern = Pattern.compile("^[^#]*config\\s*([A-Za-z0-9_]+)");
 
@@ -205,7 +207,7 @@ public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
                     String varName = "CONFIG_" + m.group(1);
                     if (vars.containsKey(varName)) {
                         vars.get(varName).addLocation(new SourceLocation(
-                                linuxSourceTree.toPath().relativize(file.toPath()).toFile(), lineNo));
+                                notNull(linuxSourceTree.toPath().relativize(file.toPath()).toFile()), lineNo));
                     }
                 }
 
@@ -226,7 +228,7 @@ public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
     }
 
     @Override
-    protected String getName() {
+    protected @NonNull String getName() {
         return "KconfigReaderExtractor";
     }
 

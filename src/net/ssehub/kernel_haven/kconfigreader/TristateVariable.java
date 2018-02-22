@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 
 import net.ssehub.kernel_haven.util.FormatException;
+import net.ssehub.kernel_haven.util.null_checks.NonNull;
+import net.ssehub.kernel_haven.util.null_checks.Nullable;
 import net.ssehub.kernel_haven.variability_model.SourceLocation;
 import net.ssehub.kernel_haven.variability_model.VariabilityVariable;
 
@@ -24,7 +26,7 @@ public class TristateVariable extends VariabilityVariable {
      * @param name
      *            The name of the new variable. Must not be null.
      */
-    public TristateVariable(String name) {
+    public TristateVariable(@NonNull String name) {
         super(name, "tristate");
     }
 
@@ -40,7 +42,7 @@ public class TristateVariable extends VariabilityVariable {
      *            The number that the module part of this variable has in the
      *            DIMACS representation of the variability model.
      */
-    public TristateVariable(String name, int dimacsNumber, int moduleNumber) {
+    public TristateVariable(@NonNull String name, int dimacsNumber, int moduleNumber) {
         super(name, "tristate", dimacsNumber);
         this.moduleNumber = moduleNumber;
     }
@@ -53,11 +55,12 @@ public class TristateVariable extends VariabilityVariable {
      * @param moduleNumber
      *            the tristate module number.
      */
-    private TristateVariable(VariabilityVariable var, int moduleNumber) {
+    private TristateVariable(@NonNull VariabilityVariable var, int moduleNumber) {
         this(var.getName(), var.getDimacsNumber(), moduleNumber);
 
-        if (var.getSourceLocations() != null) {
-            for (SourceLocation location : var.getSourceLocations()) {
+        List<@NonNull SourceLocation> sourceLocations = var.getSourceLocations();
+        if (sourceLocations != null) {
+            for (SourceLocation location : sourceLocations) {
                 this.addLocation(location);
             }
         }
@@ -87,8 +90,8 @@ public class TristateVariable extends VariabilityVariable {
     }
 
     @Override
-    public List<String> serializeCsv() {
-        List<String> result = super.serializeCsv();
+    public @NonNull List<@NonNull String> serializeCsv() {
+        List<@NonNull String> result = super.serializeCsv();
 
         result.add("" + moduleNumber);
 
@@ -96,16 +99,17 @@ public class TristateVariable extends VariabilityVariable {
     }
 
     @Override
-    public void getDimacsMapping(Map<Integer, String> mapping) {
+    public void getDimacsMapping(@NonNull Map<Integer, String> mapping) {
         mapping.put(getDimacsNumber(), getName());
         mapping.put(getModuleNumber(), getName() + "_MODULE");
     }
 
     @Override
-    public String toString() {
+    public @NonNull String toString() {
+        List<@NonNull SourceLocation> sourceLocations = getSourceLocations();
         return "TristateVariable [name=" + getName() + ", type=" + getType() + ", dimacsNumber=" + getDimacsNumber()
                 + ", moduleNumber=" + moduleNumber + ", codeLocations="
-                + (getSourceLocations() == null ? "null" : getSourceLocations().toString()) + "]";
+                + (sourceLocations == null ? "null" : sourceLocations.toString()) + "]";
     }
 
     @Override
@@ -114,7 +118,7 @@ public class TristateVariable extends VariabilityVariable {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(@Nullable Object obj) {
         boolean result = super.equals(obj);
         if (result) {
             if (obj instanceof TristateVariable) {
@@ -138,7 +142,7 @@ public class TristateVariable extends VariabilityVariable {
      * @throws FormatException
      *             If the CSV cannot be read into a variable.
      */
-    public static TristateVariable createFromCsv(String[] csvParts) throws FormatException {
+    public static TristateVariable createFromCsv(@NonNull String @NonNull [] csvParts) throws FormatException {
         if (csvParts.length < 5) {
             throw new FormatException("Invalid CSV");
         }

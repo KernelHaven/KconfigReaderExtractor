@@ -1,5 +1,7 @@
 package net.ssehub.kernel_haven.kconfigreader;
 
+import static net.ssehub.kernel_haven.util.null_checks.NullHelpers.notNull;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,6 +23,8 @@ import org.xml.sax.SAXException;
 
 import net.ssehub.kernel_haven.util.FormatException;
 import net.ssehub.kernel_haven.util.Util;
+import net.ssehub.kernel_haven.util.null_checks.NonNull;
+import net.ssehub.kernel_haven.util.null_checks.Nullable;
 import net.ssehub.kernel_haven.variability_model.VariabilityModel;
 import net.ssehub.kernel_haven.variability_model.VariabilityVariable;
 
@@ -33,9 +37,9 @@ import net.ssehub.kernel_haven.variability_model.VariabilityVariable;
  */
 public class Converter {
 
-    private File dimacsFile;
+    private @NonNull File dimacsFile;
 
-    private File rsfFile;
+    private @NonNull File rsfFile;
 
     private int choiceId;
 
@@ -45,7 +49,7 @@ public class Converter {
      * conversion process. This only not <code>null</code>, if readVariables()
      * is currently running.
      */
-    private Map<String, VariabilityVariable> variableCache;
+    private Map<@NonNull String, VariabilityVariable> variableCache;
 
     /**
      * Creates a new converter for the given DIMACS file.
@@ -55,7 +59,7 @@ public class Converter {
      *            ".features", ".dimacs", etc. for the different output files.
      *            Must not be <code>null</code>.
      */
-    public Converter(File outputBase) {
+    public Converter(@NonNull File outputBase) {
         this.dimacsFile = new File(outputBase.getAbsolutePath() + ".dimacs");
         this.rsfFile = new File(outputBase.getAbsolutePath() + ".rsf");
     }
@@ -71,9 +75,9 @@ public class Converter {
      * @throws FormatException
      *             If the DIMACS file has the wrong format.
      */
-    public VariabilityModel convert() throws IOException, FormatException {
-        Set<VariabilityVariable> dimacsVars = readVariables();
-        Map<String, VariabilityVariable> variables = readRsfVariables();
+    public @NonNull VariabilityModel convert() throws IOException, FormatException {
+        Set<@NonNull VariabilityVariable> dimacsVars = readVariables();
+        Map<@NonNull String, VariabilityVariable> variables = readRsfVariables();
 
         // for every variable we found in the DIMACS file, search the variable found in RSF and set
         // the DIMACS numbers
@@ -130,7 +134,7 @@ public class Converter {
      * @return An iterable object that returns iterators over the parent's
      *         children.
      */
-    private static Iterable<Node> nodeIterator(Node parent) {
+    private static @NonNull Iterable<Node> nodeIterator(@NonNull Node parent) {
         return () -> {
             return new Iterator<Node>() {
 
@@ -162,7 +166,7 @@ public class Converter {
      *             If the symbol doesn't have a flags attribute, or it isn't an
      *             integer.
      */
-    private boolean hasFlag(Node symbol, int flag) throws FormatException {
+    private boolean hasFlag(@NonNull Node symbol, int flag) throws FormatException {
         try {
             String flagsStr = symbol.getAttributes().getNamedItem("flags").getTextContent();
 
@@ -185,7 +189,7 @@ public class Converter {
      * 
      * @throws FormatException If the menu element is invalid.
      */
-    private Node getSymbol(Node menu) throws FormatException {
+    private @Nullable Node getSymbol(@NonNull Node menu) throws FormatException {
         Node symbol = null;
         
         for (Node menuChild : nodeIterator(menu)) {
@@ -225,7 +229,9 @@ public class Converter {
      * @throws FormatException
      *             If the format is invalid.
      */
-    private void readMenu(Node menu, Map<String, VariabilityVariable> result) throws FormatException {
+    private void readMenu(@NonNull Node menu, @NonNull Map<@NonNull String, VariabilityVariable> result)
+            throws FormatException {
+        
         Node symbol = getSymbol(menu);
         if (symbol == null) {
             return;
@@ -304,7 +310,9 @@ public class Converter {
      * @throws FormatException
      *             If the format is invalid.
      */
-    private void readSubMenu(Node submenu, Map<String, VariabilityVariable> result) throws FormatException {
+    private void readSubMenu(@NonNull Node submenu, @NonNull Map<@NonNull String, VariabilityVariable> result)
+            throws FormatException {
+        
         for (Node node : nodeIterator(submenu)) {
 
             switch (node.getNodeName()) {
@@ -336,10 +344,10 @@ public class Converter {
      * @throws FormatException
      *             If the format of the file is invalid.
      */
-    private Map<String, VariabilityVariable> readRsfVariables() throws IOException, FormatException {
+    private @NonNull Map<@NonNull String, VariabilityVariable> readRsfVariables() throws IOException, FormatException {
         choiceId = 1;
         
-        Map<String, VariabilityVariable> result = new HashMap<>();
+        Map<@NonNull String, VariabilityVariable> result = new HashMap<>();
 
         try (FileInputStream in = new FileInputStream(rsfFile)) {
             // skip everything until the "\n.\n"
@@ -393,7 +401,7 @@ public class Converter {
      * @throws FormatException
      *             If the file has not the correct format.
      */
-    private Set<VariabilityVariable> readVariables() throws IOException, FormatException {
+    private @NonNull Set<@NonNull VariabilityVariable> readVariables() throws IOException, FormatException {
         BufferedReader in = null;
         variableCache = new HashMap<>();
 
@@ -424,13 +432,15 @@ public class Converter {
 
         }
         
-        Set<VariabilityVariable> result = new HashSet<>();
+        Set<@NonNull VariabilityVariable> result = new HashSet<>();
         
         // search for tristate variables that are missing the non _MODULE part (the boolean part).
         // this means, that we found a _MODULE variable, but no corresponding variable without _MODULE
         // convert these variables back to boolean type with _MODULE (i.e. they are boolean variables that simply
         // happen to have a name ending in _MODULE)
         for (VariabilityVariable var : variableCache.values()) {
+            var = notNull(var);
+            
             if (var instanceof TristateVariable) {
                 TristateVariable tri = (TristateVariable) var;
                 
@@ -459,7 +469,7 @@ public class Converter {
      * @throws FormatException
      *             If the number is not parseable.
      */
-    private void readVariable(String[] elements) throws FormatException {
+    private void readVariable(@NonNull String @NonNull [] elements) throws FormatException {
         int number = -1;
         try {
             number = Integer.parseInt(elements[1]);
@@ -477,7 +487,7 @@ public class Converter {
 
         if (name.endsWith("_MODULE")) {
             // we found the module part of a tristate variable
-            name = name.substring(0, name.length() - "_MODULE".length());
+            name = notNull(name.substring(0, name.length() - "_MODULE".length()));
             int existingNumber = 0;
             if (variableCache.containsKey(name)) {
                 // the boolean part was already found earlier, so we reuse its

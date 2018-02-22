@@ -30,6 +30,7 @@ import net.ssehub.kernel_haven.util.Util;
  * @author Johannes
  * @author Manu
  */
+@SuppressWarnings("null")
 public class KconfigReaderWrapperTest {
 
     private static final File LINUX_DIR = new File("testdata/pseudoLinux/");

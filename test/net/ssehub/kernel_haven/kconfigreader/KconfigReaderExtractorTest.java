@@ -35,6 +35,7 @@ import net.ssehub.kernel_haven.variability_model.VariabilityVariable;
  * @author adam
  *
  */
+@SuppressWarnings("null")
 public class KconfigReaderExtractorTest {
     
     private static final File RESOURCE_DIR = new File("testdata/tmp_res");
