@@ -20,6 +20,7 @@ import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
 import net.ssehub.kernel_haven.util.FormatException;
+import net.ssehub.kernel_haven.util.Util;
 import net.ssehub.kernel_haven.variability_model.VariabilityModel;
 import net.ssehub.kernel_haven.variability_model.VariabilityVariable;
 
@@ -111,7 +112,13 @@ public class Converter {
             // this is because they are in the form of "CONFIG_INT_VAR=<value>" and occur multiple times
         }
 
-        VariabilityModel result = new VariabilityModel(dimacsFile, variables);
+        // copy the DIMACS file, since the current temporary one will be deleted
+        File dimacsCopy = File.createTempFile("varmodel", ".dimacs");
+        dimacsCopy.delete();
+        Util.copyFile(dimacsFile, dimacsCopy);
+        dimacsCopy.deleteOnExit();
+        
+        VariabilityModel result = new VariabilityModel(dimacsCopy, variables);
         return result;
     }
 
