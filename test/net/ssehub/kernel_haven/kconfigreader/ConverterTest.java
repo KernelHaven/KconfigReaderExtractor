@@ -9,11 +9,13 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Test;
 
 import net.ssehub.kernel_haven.util.FormatException;
+import net.ssehub.kernel_haven.util.null_checks.NonNull;
 import net.ssehub.kernel_haven.variability_model.VariabilityModel;
 import net.ssehub.kernel_haven.variability_model.VariabilityVariable;
 
@@ -242,6 +244,61 @@ public class ConverterTest {
         assertThat(var, notNullValue());
         assertThat(var.getType(), is("bool"));
         assertThat(var.getDimacsNumber(), is(1));
+    }
+    
+    /**
+     * Tests if dependencies are correctly read from the XML.
+     * 
+     * @throws FormatException unwanted.
+     * @throws IOException unwanted.
+     */
+    @Test
+    public void testReadDependencies() throws IOException, FormatException {
+        Converter converter = init(new File("testdata/dependencies"));
+        VariabilityModel vm = converter.convert();
+        
+        assertThat(vm.getVariables().size(), is(6));
+        
+        HashSet<@NonNull VariabilityVariable> vars = new HashSet<>();
+        
+        // TODO: numConstraints is not yet implemented
+        
+        VariabilityVariable a = vm.getVariableMap().get("CONFIG_A");
+        assertThat(a, notNullValue());
+        assertThat(a.getType(), is("bool"));
+//        assertThat(a.getNumConstraints(), is(0));
+        vars.clear();
+        assertThat(a.getVariablesUsedInConstraints(), is(vars));
+        
+        VariabilityVariable b = vm.getVariableMap().get("CONFIG_B");
+        assertThat(b, notNullValue());
+        assertThat(b.getType(), is("bool"));
+//        assertThat(b.getNumConstraints(), is(1));
+        vars.add(a);
+        assertThat(b.getVariablesUsedInConstraints(), is(vars));
+        
+        VariabilityVariable c = vm.getVariableMap().get("CONFIG_C");
+        assertThat(c, notNullValue());
+        assertThat(c.getType(), is("tristate"));
+//        assertThat(c.getNumConstraints(), is(1));
+        assertThat(c.getVariablesUsedInConstraints(), is(vars));
+        
+        VariabilityVariable e = vm.getVariableMap().get("CONFIG_E");
+        assertThat(e, notNullValue());
+        assertThat(e.getType(), is("bool"));
+//        assertThat(e.getNumConstraints(), is(0));
+        vars.clear();
+        assertThat(e.getVariablesUsedInConstraints(), is(vars));
+        
+        VariabilityVariable d = vm.getVariableMap().get("CONFIG_D");
+        assertThat(d, notNullValue());
+        assertThat(d.getType(), is("bool"));
+//        assertThat(d.getNumConstraints(), is(3));
+        vars.add(a);
+        vars.add(b);
+        vars.add(c);
+        vars.add(e);
+        assertThat(d.getVariablesUsedInConstraints(), is(vars));
     }
     
 }

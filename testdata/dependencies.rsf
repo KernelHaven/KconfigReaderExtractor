@@ -1,0 +1,45 @@
+
+.
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><submenu>
+<menu flags="0">
+<symbol flags="41216" id="31750096" type="boolean">
+<name>A</name>
+<property type="?"><expr>S@31750096</expr></property>
+<property type="prompt"><text><![CDATA[Variable A]]></text></property>
+</symbol>
+</menu>
+<submenu>
+<menu flags="0">
+<symbol flags="41216" id="31750688" type="boolean">
+<name>B</name>
+<property type="?"><expr>S@31750688</expr><visible><expr>S@31750096</expr></visible></property>
+<property type="prompt"><text><![CDATA[Variable B]]></text><visible><expr>S@31750096</expr></visible></property>
+</symbol>
+<dep>S@31750096</dep></menu>
+<menu flags="0">
+<dep>S@31750096</dep></menu>
+<menu flags="0">
+<symbol flags="41216" id="31751456" type="tristate">
+<name>C</name>
+<property type="?"><expr>S@31751456</expr><visible><expr>S@31750096</expr></visible></property>
+<property type="prompt"><text><![CDATA[A tristate]]></text><visible><expr>S@31750096</expr></visible></property>
+</symbol>
+<dep>S@31750096</dep></menu>
+<submenu>
+<menu flags="0">
+<symbol flags="41216" id="31752048" type="boolean">
+<name>D</name>
+<property type="?"><expr>S@31752048</expr><visible><expr>(S@31750096 &amp;&amp; (S@31750688 || (S@31751456=m)))</expr></visible></property>
+<property type="prompt"><text><![CDATA[D]]></text><visible><expr>(S@31750096 &amp;&amp; (S@31750688 || (S@31751456=m)))</expr></visible></property>
+<property type="select"><expr>S@31752768</expr><visible><expr>((S@31750688 || (S@31751456=m)) &amp;&amp; S@31750096)</expr></visible></property>
+</symbol>
+<dep>(S@31750096 &amp;&amp; (S@31750688 || (S@31751456=m)))</dep></menu>
+</submenu>
+</submenu>
+<menu flags="0">
+<symbol flags="41216" id="31752768" type="boolean">
+<name>E</name>
+<property type="?"><expr>S@31752768</expr></property>
+</symbol>
+</menu>
+</submenu>

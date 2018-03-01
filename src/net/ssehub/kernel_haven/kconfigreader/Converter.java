@@ -12,6 +12,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -36,6 +38,8 @@ import net.ssehub.kernel_haven.variability_model.VariabilityVariable;
  * @author Moritz
  */
 public class Converter {
+    
+    private static final Pattern ID_PATTERN = Pattern.compile("S@[0-9]+");
 
     private @NonNull File dimacsFile;
 
@@ -44,12 +48,22 @@ public class Converter {
     private int choiceId;
 
     /**
-     * A cache the intermediate results for collecting the variables found in
+     * A cache of the intermediate results for collecting the variables found in
      * the comments. The types of these variables may be changed in the
-     * conversion process. This only not <code>null</code>, if readVariables()
+     * conversion process. This is only not <code>null</code>, if readVariables()
      * is currently running.
      */
     private Map<@NonNull String, VariabilityVariable> variableCache;
+    
+    /**
+     * Maps the IDs used in conditions (e.g. "@S4543534") to variable names.
+     */
+    private Map<@NonNull String, String> idToName;
+    
+    /**
+     * Maps variable names to a set of IDs that appear in the variable's conditions.
+     */
+    private Map<@NonNull String, Set<@NonNull String>> usedVariables;
 
     /**
      * Creates a new converter for the given DIMACS file.
@@ -77,8 +91,10 @@ public class Converter {
      */
     public @NonNull VariabilityModel convert() throws IOException, FormatException {
         Set<@NonNull VariabilityVariable> dimacsVars = readVariables();
+        idToName = new HashMap<>();
+        usedVariables = new HashMap<>();
         Map<@NonNull String, VariabilityVariable> variables = readRsfVariables();
-
+        
         // for every variable we found in the DIMACS file, search the variable found in RSF and set
         // the DIMACS numbers
         for (VariabilityVariable dimacsVar : dimacsVars) {
@@ -116,6 +132,8 @@ public class Converter {
             // this is because they are in the form of "CONFIG_INT_VAR=<value>" and occur multiple times
         }
 
+        setUsedVariables(variables);
+        
         // copy the DIMACS file, since the current temporary one will be deleted
         File dimacsCopy = File.createTempFile("varmodel", ".dimacs");
         dimacsCopy.delete();
@@ -124,6 +142,35 @@ public class Converter {
         
         VariabilityModel result = new VariabilityModel(dimacsCopy, variables);
         return result;
+    }
+    
+    /**
+     * Calculates the used variables from {@link #usedVariables} and {@link #idToName} and sets it to the given
+     * variables.
+     * 
+     * @param variables The variables in the variability model.
+     * 
+     * @throws FormatException If any IDs could not be found.
+     */
+    private void setUsedVariables(Map<@NonNull String, VariabilityVariable> variables) throws FormatException {
+        for (Map.Entry<@NonNull String, Set<@NonNull String>> entry : usedVariables.entrySet()) {
+            Set<@NonNull VariabilityVariable> usedVariables = new HashSet<>();
+            for (@NonNull String id : notNull(entry.getValue())) {
+                VariabilityVariable usedVar = variables.get(idToName.get(id));
+                if (usedVar != null) {
+                    usedVariables.add(usedVar);
+                } else {
+                    throw new FormatException("Found no variable for ID " + id);
+                }
+            }
+            
+            VariabilityVariable var = variables.get(entry.getKey());
+            if (var != null) {
+                var.setVariablesUsedInConstraints(usedVariables);
+            } else {
+                throw new FormatException("Found no variable with name " + entry.getKey());
+            }
+        }
     }
 
     /**
@@ -220,6 +267,28 @@ public class Converter {
     }
     
     /**
+     * Finds all used variable IDs (e.g. "S@3432434") in the given text content of a condition.
+     * 
+     * @param textContent The text content to search the IDs in.
+     * @param currentId The ID of the variable that this condition is in. This will not be added to the result.
+     * 
+     * @return The used variable IDs.
+     */
+    private @NonNull Set<@NonNull String> readUsedIds(@NonNull String textContent, @NonNull String currentId) {
+        Set<@NonNull String> result = new HashSet<>();
+        
+        Matcher m = ID_PATTERN.matcher(textContent);
+        while (m.find()) {
+            String id = m.group();
+            if (!id.equals(currentId)) {
+                result.add(id);
+            }
+        }
+        
+        return result;
+    }
+    
+    /**
      * Reads the given menu node.
      * 
      * @param menu
@@ -239,7 +308,7 @@ public class Converter {
 
         // attributes
         String type = symbol.getAttributes().getNamedItem("type").getTextContent();
-//        int id = Integer.parseInt(symbol.getAttributes().getNamedItem("id").getTextContent());
+        String id = "S@" + symbol.getAttributes().getNamedItem("id").getTextContent();
         boolean choice = hasFlag(symbol, 0x0010);
         
         if (type.equals("boolean")) {
@@ -248,6 +317,7 @@ public class Converter {
 
         // children
         String name = null;
+        Set<@NonNull String> usedIds = new HashSet<>();
 
         for (Node symbolChild : nodeIterator(symbol)) {
             switch (symbolChild.getNodeName()) {
@@ -261,7 +331,7 @@ public class Converter {
                 break;
 
             case "property":
-                // TODO
+                usedIds.addAll(readUsedIds(notNull(symbolChild.getTextContent()), id));
                 break;
 
             case "#text":
@@ -284,12 +354,8 @@ public class Converter {
         }
 
         name = "CONFIG_" + name;
-
-        // System.out.println("ID: " + id);
-        // System.out.println("Symbol: " + name);
-        // System.out.println("Type: " + type);
-        // System.out.println("Choice: " + choice);
-        // System.out.println("-----------------");
+        idToName.put(id, name);
+        usedVariables.put(name, usedIds);
 
         VariabilityVariable var;
         if (type.equals("tristate")) {
@@ -375,10 +441,10 @@ public class Converter {
 
                 readSubMenu(element, result);
 
-                // Transformer t =
-                // TransformerFactory.newInstance().newTransformer();
-                // t.transform(new DOMSource(doc), new
-                // StreamResult(System.out));
+//                ByteArrayOutputStream out = new ByteArrayOutputStream();
+//                Transformer t = TransformerFactory.newInstance().newTransformer();
+//                t.transform(new DOMSource(doc), new StreamResult(out));
+//                System.out.println(out.toString().trim());
 
             } catch (ParserConfigurationException | SAXException e) {
                 throw new FormatException(e);
