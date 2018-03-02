@@ -15,13 +15,11 @@ import java.util.Set;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import net.ssehub.kernel_haven.SetUpException;
 import net.ssehub.kernel_haven.test_utils.TestConfiguration;
 import net.ssehub.kernel_haven.util.ExtractorException;
-import net.ssehub.kernel_haven.util.Logger;
 import net.ssehub.kernel_haven.util.Util;
 import net.ssehub.kernel_haven.variability_model.SourceLocation;
 import net.ssehub.kernel_haven.variability_model.VariabilityModel;
@@ -39,14 +37,6 @@ import net.ssehub.kernel_haven.variability_model.VariabilityVariable;
 public class KconfigReaderExtractorTest {
     
     private static final File RESOURCE_DIR = new File("testdata/tmp_res");
-    
-    /**
-     * Initializes the logger.
-     */
-    @BeforeClass
-    public static void initLogger() {
-        Logger.init();
-    }
     
     /**
      * Creates the temporary resource dir.

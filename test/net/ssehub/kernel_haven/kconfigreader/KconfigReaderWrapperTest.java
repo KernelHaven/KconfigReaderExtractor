@@ -16,10 +16,8 @@ import java.util.Set;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import net.ssehub.kernel_haven.util.Logger;
 import net.ssehub.kernel_haven.util.Util;
 
 /**
@@ -38,14 +36,6 @@ public class KconfigReaderWrapperTest {
     private static final File RESOURCE_DIR = new File("testdata/tmp_res");
 
     private KconfigReaderWrapper wrapper;
-
-    /**
-     * Initializes the logger.
-     */
-    @BeforeClass
-    public static void beforeClass() {
-        Logger.init();
-    }
 
     /**
      * Creates a new wrapper object for each test and creates the resource dir.
