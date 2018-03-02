@@ -247,14 +247,14 @@ public class ConverterTest {
     }
     
     /**
-     * Tests if dependencies are correctly read from the XML.
+     * Tests if variables used in conditions are correctly read from the XML.
      * 
      * @throws FormatException unwanted.
      * @throws IOException unwanted.
      */
     @Test
     @SuppressWarnings("null")
-    public void testReadDependencies() throws IOException, FormatException {
+    public void testVariabilityUsage() throws IOException, FormatException {
         Converter converter = init(new File("testdata/dependencies"));
         VariabilityModel vm = converter.convert();
         
