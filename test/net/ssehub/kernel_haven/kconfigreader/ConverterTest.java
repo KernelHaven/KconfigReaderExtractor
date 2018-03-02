@@ -253,52 +253,63 @@ public class ConverterTest {
      * @throws IOException unwanted.
      */
     @Test
+    @SuppressWarnings("null")
     public void testReadDependencies() throws IOException, FormatException {
         Converter converter = init(new File("testdata/dependencies"));
         VariabilityModel vm = converter.convert();
         
         assertThat(vm.getVariables().size(), is(6));
         
-        HashSet<@NonNull VariabilityVariable> vars = new HashSet<>();
+        HashSet<@NonNull VariabilityVariable> usedVars = new HashSet<>();
+        HashSet<@NonNull VariabilityVariable> usedInVars = new HashSet<>();
         
         // TODO: numConstraints is not yet implemented
         
         VariabilityVariable a = vm.getVariableMap().get("CONFIG_A");
-        assertThat(a, notNullValue());
-        assertThat(a.getType(), is("bool"));
-//        assertThat(a.getNumConstraints(), is(0));
-        vars.clear();
-        assertThat(a.getVariablesUsedInConstraints(), is(vars));
-        
         VariabilityVariable b = vm.getVariableMap().get("CONFIG_B");
-        assertThat(b, notNullValue());
-        assertThat(b.getType(), is("bool"));
-//        assertThat(b.getNumConstraints(), is(1));
-        vars.add(a);
-        assertThat(b.getVariablesUsedInConstraints(), is(vars));
-        
         VariabilityVariable c = vm.getVariableMap().get("CONFIG_C");
-        assertThat(c, notNullValue());
-        assertThat(c.getType(), is("tristate"));
-//        assertThat(c.getNumConstraints(), is(1));
-        assertThat(c.getVariablesUsedInConstraints(), is(vars));
-        
-        VariabilityVariable e = vm.getVariableMap().get("CONFIG_E");
-        assertThat(e, notNullValue());
-        assertThat(e.getType(), is("bool"));
-//        assertThat(e.getNumConstraints(), is(0));
-        vars.clear();
-        assertThat(e.getVariablesUsedInConstraints(), is(vars));
-        
         VariabilityVariable d = vm.getVariableMap().get("CONFIG_D");
+        VariabilityVariable e = vm.getVariableMap().get("CONFIG_E");
+        assertThat(a, notNullValue());
+        assertThat(b, notNullValue());
+        assertThat(c, notNullValue());
         assertThat(d, notNullValue());
+        assertThat(e, notNullValue());
+        
+        assertThat(a.getType(), is("bool"));
+        assertThat(a.getVariablesUsedInConstraints(), is(usedVars)); // usedVars = {}
+        usedInVars.add(b);
+        usedInVars.add(c);
+        usedInVars.add(d);
+        assertThat(a.getUsedInConstraintsOfOtherVariables(), is(usedInVars)); // usedInVars = {b, c, d}
+        
+        assertThat(b.getType(), is("bool"));
+        usedVars.add(a);
+        assertThat(b.getVariablesUsedInConstraints(), is(usedVars)); // usedVars = {a}
+        usedInVars.clear();
+        usedInVars.add(d);
+        assertThat(b.getUsedInConstraintsOfOtherVariables(), is(usedInVars)); // usedInVars = {d}
+        
+        assertThat(c.getType(), is("tristate"));
+        assertThat(c.getVariablesUsedInConstraints(), is(usedVars)); // usedVars = {a}
+        assertThat(c.getUsedInConstraintsOfOtherVariables(), is(usedInVars)); // usedInVars = {d}
+        
         assertThat(d.getType(), is("bool"));
-//        assertThat(d.getNumConstraints(), is(3));
-        vars.add(a);
-        vars.add(b);
-        vars.add(c);
-        vars.add(e);
-        assertThat(d.getVariablesUsedInConstraints(), is(vars));
+        usedVars.add(a);
+        usedVars.add(b);
+        usedVars.add(c);
+        usedVars.add(e);
+        assertThat(d.getVariablesUsedInConstraints(), is(usedVars)); // usedVars = {a, b, c, e}
+        usedInVars.clear();
+        assertThat(d.getUsedInConstraintsOfOtherVariables(), is(usedInVars)); // usedInVars = {}
+        
+        assertThat(e.getType(), is("bool"));
+        usedVars.clear();
+        assertThat(e.getVariablesUsedInConstraints(), is(usedVars)); // usedVars = {}
+        usedInVars.clear();
+        usedInVars.add(d);
+        assertThat(e.getUsedInConstraintsOfOtherVariables(), is(usedInVars)); // usedInVars = {d}
+        
     }
     
 }

@@ -171,6 +171,31 @@ public class Converter {
                 throw new FormatException("Found no variable with name " + entry.getKey());
             }
         }
+        
+        // calculate the "reverse" for usedInConstraintsOfOtherVariables
+        Map<VariabilityVariable, Set<@NonNull VariabilityVariable>> usedInConstraintsOf
+                = new HashMap<>(variables.size());
+        
+        for (VariabilityVariable var : variables.values()) {
+            usedInConstraintsOf.put(var, new HashSet<>());
+            
+            // by the way, make sure that variablesUsedInConstraints is not null for every variable
+            if (var.getVariablesUsedInConstraints() == null) {
+                var.setVariablesUsedInConstraints(new HashSet<>());
+            }
+        }
+        for (VariabilityVariable var : variables.values()) {
+            for (VariabilityVariable used : notNull(var.getVariablesUsedInConstraints())) {
+                Set<VariabilityVariable> set = usedInConstraintsOf.get(used);
+                if (set != null) {
+                    set.add(var);
+                }
+            }
+        }
+        
+        for (Map.Entry<VariabilityVariable, Set<@NonNull VariabilityVariable>> entry : usedInConstraintsOf.entrySet()) {
+            entry.getKey().setUsedInConstraintsOfOtherVariables(notNull(entry.getValue()));
+        }
     }
 
     /**
