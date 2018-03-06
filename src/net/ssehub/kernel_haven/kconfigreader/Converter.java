@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.LineNumberReader;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -447,7 +448,7 @@ public class Converter {
             while (lastThree[0] != '\n' || lastThree[1] != '.' || lastThree[2] != '\n') {
                 int read = in.read();
                 if (read == -1) {
-                    throw new FormatException();
+                    throw new FormatException("Expected rsf file to begin with \"\\n.\\n\"");
                 }
                 lastThree[index] = (char) read;
                 index = (index + 1) % lastThree.length;
@@ -461,7 +462,7 @@ public class Converter {
                 Node element = doc.getDocumentElement();
 
                 if (!element.getNodeName().equals("submenu")) {
-                    throw new FormatException("Not a submenu");
+                    throw new FormatException("Top level element is not a submenu");
                 }
 
                 readSubMenu(element, result);
@@ -493,11 +494,11 @@ public class Converter {
      *             If the file has not the correct format.
      */
     private @NonNull Set<@NonNull VariabilityVariable> readVariables() throws IOException, FormatException {
-        BufferedReader in = null;
+        LineNumberReader in = null;
         variableCache = new HashMap<>();
 
         try {
-            in = new BufferedReader(new FileReader(dimacsFile));
+            in = new LineNumberReader(new BufferedReader(new FileReader(dimacsFile)));
 
             String line;
             while ((line = in.readLine()) != null) {
@@ -511,9 +512,10 @@ public class Converter {
                 }
 
                 if (!elements[0].equals("c")) {
-                    throw new FormatException();
+                    throw new FormatException("Expected comment line starting with \"c\" at line "
+                            + in.getLineNumber());
                 }
-                readVariable(elements);
+                readVariable(elements, in.getLineNumber());
 
             }
         } finally {
@@ -556,16 +558,17 @@ public class Converter {
      * 
      * @param elements
      *            The parts read from the line. Must not be null.
+     * @param currentLineNumber The current line number in the DIMACS file. used for error messages.
      * 
      * @throws FormatException
      *             If the number is not parseable.
      */
-    private void readVariable(@NonNull String @NonNull [] elements) throws FormatException {
+    private void readVariable(@NonNull String @NonNull [] elements, int currentLineNumber) throws FormatException {
         int number = -1;
         try {
             number = Integer.parseInt(elements[1]);
         } catch (NumberFormatException exc) {
-            throw new FormatException();
+            throw new FormatException("Couldn't parse integer at line " + currentLineNumber + ": " + exc.getMessage());
         }
 
         String name = elements[2];
