@@ -278,7 +278,7 @@ public class Converter {
                 break;
 
             case "dep":
-                // TODO
+                // not needed for constraint analysis, since the dependency condition also appears properties
                 break;
 
             case "#text":
