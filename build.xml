@@ -2,7 +2,7 @@
 
 <!-- author: moritz, kevin -->
 <project name="KconfigReaderExtractor" default="jenkins" basedir=".">
-	<description>Builds, tests, and runs the project KconfigReaderExtractor.</description>
+	<description>A variability-model extractor based on the KconfigReaderExtractor tool</description>
 
 	<!-- Load Marcros on Jenkins -->
 	<include file="../../KernelHaven_Infrastructure/workspace/KernelHavenMacros.xml" as="KH_Common" optional="true" />
@@ -24,4 +24,5 @@
 		<antcall target="KH_Common.prepare.folders" />
 		<get src="${infrastructure.location}" dest="${dependencies.dir}/kernelhaven.jar" />
 	</target>
+
 </project>
