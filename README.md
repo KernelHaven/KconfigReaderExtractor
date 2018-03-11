@@ -1,6 +1,6 @@
 # KconfigReaderExtractor
 
-![Build Status](http://jenkins.sse.uni-hildesheim.de/buildStatus/icon?job=KernelHaven_KconfigReaderExtractor)
+![Build Status](https://jenkins.sse.uni-hildesheim.de/buildStatus/icon?job=KernelHaven_KconfigReaderExtractor)
 
 A variability-model extractor for [KernelHaven](https://github.com/KernelHaven/KernelHaven).
 
@@ -24,6 +24,7 @@ In addition to KernelHaven, this plugin has the following dependencies:
 
 ## License
 
-This plugin is licensed under GPLv3. Another license would be possible with following restrictions:
+This plugin is licensed under [GPLv3](https://www.gnu.org/licenses/gpl-3.0.html).
 
-The plugin contains KconfigReader which is under GPL-3.0. We do not link against KconfigReader, so technically we are not infected by GPL. However a release under a license other than GPL-3.0 would require the removal of the contained KconfigReader.
+Another license would be possible with the following restriction:
+* The plugin contains KconfigReader which is under GPLv3. We do not link against KconfigReader, so technically we are not infected by GPL. However a release under a license other than GPLv3 would require the removal of the contained KconfigReader.
