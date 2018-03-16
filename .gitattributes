@@ -1,0 +1,2 @@
+# Tell Github that testdata/ does not contain "real" source files for language detection
+testdata/* linguist-vendored
