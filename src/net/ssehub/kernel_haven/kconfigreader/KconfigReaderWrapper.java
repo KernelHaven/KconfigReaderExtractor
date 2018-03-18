@@ -107,7 +107,7 @@ public class KconfigReaderWrapper {
         File outputBase = File.createTempFile("kconfigreader_output", "");
         outputBase.delete();
         
-        ProcessBuilder processBuilder = new ProcessBuilder("java", "-cp",
+        ProcessBuilder processBuilder = new ProcessBuilder("java", "-Xmx2G", "-cp",
                 kconfigReaderJar.getAbsolutePath(), "de.fosd.typechef.kconfig.KConfigReader",
                 "--writeDimacs",
                 "--fast",
