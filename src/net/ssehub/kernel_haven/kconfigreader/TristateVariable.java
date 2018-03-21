@@ -1,5 +1,7 @@
 package net.ssehub.kernel_haven.kconfigreader;
 
+import static net.ssehub.kernel_haven.util.null_checks.NullHelpers.notNull;
+
 import java.util.List;
 import java.util.Map;
 
@@ -8,6 +10,8 @@ import net.ssehub.kernel_haven.util.null_checks.NonNull;
 import net.ssehub.kernel_haven.util.null_checks.Nullable;
 import net.ssehub.kernel_haven.variability_model.SourceLocation;
 import net.ssehub.kernel_haven.variability_model.VariabilityVariable;
+import net.ssehub.kernel_haven.variability_model.VariabilityVariableSerializer;
+import net.ssehub.kernel_haven.variability_model.VariabilityVariableSerializerFactory;
 
 /**
  * A variability variable of type tristate. This additionally saves the DIMACS
@@ -17,6 +21,13 @@ import net.ssehub.kernel_haven.variability_model.VariabilityVariable;
  * @author Moritz
  */
 public class TristateVariable extends VariabilityVariable {
+    
+    static {
+        // this block is called by the infrastructure, see loadClasses.txt
+        
+        VariabilityVariableSerializerFactory.INSTANCE.registerSerializer(notNull(TristateVariable.class.getName()),
+                new TristateVariableSerializer());
+    }
 
     private int moduleNumber;
 
@@ -90,15 +101,6 @@ public class TristateVariable extends VariabilityVariable {
     }
 
     @Override
-    public @NonNull List<@NonNull String> serializeCsv() {
-        List<@NonNull String> result = super.serializeCsv();
-
-        result.add("" + moduleNumber);
-
-        return result;
-    }
-
-    @Override
     public void getDimacsMapping(@NonNull Map<Integer, String> mapping) {
         mapping.put(getDimacsNumber(), getName());
         mapping.put(getModuleNumber(), getName() + "_MODULE");
@@ -133,28 +135,41 @@ public class TristateVariable extends VariabilityVariable {
     }
 
     /**
-     * Creates a {@link TristateVariable} from the given CSV.
-     * 
-     * @param csvParts
-     *            The CSV that is converted into a {@link TristateVariable}.
-     * @return The {@link TristateVariable} created by the CSV.
-     * 
-     * @throws FormatException
-     *             If the CSV cannot be read into a variable.
+     * A serializer for {@link TristateVariable}s.
      */
-    public static TristateVariable createFromCsv(@NonNull String @NonNull [] csvParts) throws FormatException {
-        if (csvParts.length < 5) {
-            throw new FormatException("Invalid CSV");
+    private static class TristateVariableSerializer extends VariabilityVariableSerializer {
+
+        @Override
+        protected @NonNull List<@NonNull String> serializeImpl(@NonNull VariabilityVariable variable) {
+            TristateVariable triVar = (TristateVariable) variable;
+            
+            List<@NonNull String> result = super.serializeImpl(variable);
+            result.add(notNull(String.valueOf(triVar.moduleNumber)));
+            
+            return result;
         }
-
-        try {
-            VariabilityVariable var = VariabilityVariable.createFromCsv(csvParts);
-
-            return new TristateVariable(var, Integer.parseInt(csvParts[4]));
-
-        } catch (NumberFormatException e) {
-            throw new FormatException(e);
+        
+        @Override
+        protected @NonNull VariabilityVariable deserializeImpl(@NonNull String @NonNull [] csv) throws FormatException {
+            VariabilityVariable variable = super.deserializeImpl(csv);
+            
+            try {
+                TristateVariable result = new TristateVariable(variable, Integer.parseInt(csv[DEFAULT_SIZE]));
+                
+                return result;
+                
+            } catch (NumberFormatException e) {
+                throw new FormatException(e);
+            }
         }
+        
+        @Override
+        protected void checkLength(@NonNull String @NonNull [] csv) throws FormatException {
+            if (csv.length != DEFAULT_SIZE + 1) {
+                throw new FormatException("Expected " +  (DEFAULT_SIZE + 1) + " fields");
+            }
+        }
+        
     }
-
+    
 }
