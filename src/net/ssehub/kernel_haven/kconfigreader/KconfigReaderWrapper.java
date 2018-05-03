@@ -3,8 +3,11 @@ package net.ssehub.kernel_haven.kconfigreader;
 import java.io.File;
 import java.io.IOException;
 
+import net.ssehub.kernel_haven.kconfigreader.KconfigReaderExtractor.DumpconfVersion;
 import net.ssehub.kernel_haven.util.Logger;
 import net.ssehub.kernel_haven.util.Util;
+import net.ssehub.kernel_haven.util.null_checks.NonNull;
+import net.ssehub.kernel_haven.util.null_checks.Nullable;
 
 /**
  * Methods for running the Linux processes required for KconfigReader.
@@ -19,19 +22,24 @@ public class KconfigReaderWrapper {
     
     private static final Logger LOGGER = Logger.get();
 
-    private File resourceDir;
+    private @NonNull DumpconfVersion dumpconfVersion;
+    
+    private @NonNull File resourceDir;
 
-    private File linuxSourceTree;
+    private @NonNull File linuxSourceTree;
     
     /**
      * Creates a new KconfigReaderWrapper.
      * 
      * @param resourceDir The path to the resource directory of this extractor. Must not be null.
      * @param linuxSourceTree The path to the linux source tree. Must not be <code>null</code>.
+     * @param dumpconfVersion The dumpconf.c version to use.
      */
-    public KconfigReaderWrapper(File resourceDir, File linuxSourceTree) {
+    public KconfigReaderWrapper(@NonNull File resourceDir, @NonNull File linuxSourceTree,
+            @NonNull DumpconfVersion dumpconfVersion) {
         this.resourceDir = resourceDir;
         this.linuxSourceTree = linuxSourceTree;
+        this.dumpconfVersion = dumpconfVersion;
     }
     
     /**
@@ -60,13 +68,13 @@ public class KconfigReaderWrapper {
      * 
      * @throws IOException If executing dumpconf fails.
      */
-    public File compileDumpconf() throws IOException {
+    public @Nullable File compileDumpconf() throws IOException {
         LOGGER.logDebug("compileDumpconf() called");
         
         // extract dumpconf.c to temporary file
-        File dumpconfSource = new File(resourceDir, "dumpconf.c");
+        File dumpconfSource = new File(resourceDir, dumpconfVersion.getFilename());
         if (!dumpconfSource.isFile()) {
-            Util.extractJarResourceToFile("net/ssehub/kernel_haven/kconfigreader/res/dumpconf.c",
+            Util.extractJarResourceToFile("net/ssehub/kernel_haven/kconfigreader/res/" + dumpconfVersion.getFilename(),
                     dumpconfSource);
         }
         File dumpconfExe = File.createTempFile("dumpconf", ".exe");
@@ -93,7 +101,7 @@ public class KconfigReaderWrapper {
      * 
      * @throws IOException If executing KconfigReader fails.
      */
-    public File runKconfigReader(File dumpconfExe, String arch)
+    public @Nullable File runKconfigReader(File dumpconfExe, String arch)
             throws IOException {
         LOGGER.logDebug("runKconfigReader() called");
         

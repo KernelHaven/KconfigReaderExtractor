@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 import net.ssehub.kernel_haven.SetUpException;
 import net.ssehub.kernel_haven.config.Configuration;
 import net.ssehub.kernel_haven.config.DefaultSettings;
+import net.ssehub.kernel_haven.config.EnumSetting;
 import net.ssehub.kernel_haven.config.Setting;
 import net.ssehub.kernel_haven.util.ExtractorException;
 import net.ssehub.kernel_haven.util.FormatException;
@@ -37,45 +38,93 @@ import net.ssehub.kernel_haven.variability_model.VariabilityModelDescriptor.Vari
  */
 public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
 
-    private static final Logger LOGGER = Logger.get();
+    /**
+     * Different versions of dumpconf.c, depending on which kconfig version / project should be analyzed.
+     */
+    public static enum DumpconfVersion {
+        
+        LINUX("dumpconf_linux.c"),
+        
+        BUSYBOX("dumpconf_busybox.c");
+        
+        private @NonNull String filename;
+        
+        /**
+         * Creates a dumpconf version.
+         * 
+         * @param filename The filename of the dumpconf.c in the resource folder.
+         */
+        private DumpconfVersion(@NonNull String filename) {
+            this.filename = filename;
+        }
+        
+        /**
+         * The filename of the dumpconf.c in the resource folder.
+         * 
+         * @return The filename of this dumpconf.c.
+         */
+        public @NonNull String getFilename() {
+            return filename;
+        }
+        
+    }
     
-    private static final @NonNull Setting<@NonNull Boolean> FIND_LOCATIONS
+    
+    /**
+     * A setting that specifies which dumpconf.c to use.
+     */
+    public static final @NonNull EnumSetting<@NonNull DumpconfVersion> DUMPCONF_VERSION
+            = new EnumSetting<>("variability.extractor.dumpconf_version", DumpconfVersion.class, true,
+                    DumpconfVersion.LINUX, "TODO"); // TODO: description
+    
+    /**
+     * A setting that specifies whether to find code locations of the variables or not.
+     */
+    public static final @NonNull Setting<@NonNull Boolean> FIND_LOCATIONS
             = new Setting<>("variability.extractor.find_locations", Setting.Type.BOOLEAN, true, "false", "If set to "
                     + "true, the extractor will store source locations for each variable. Those locations represent "
                     + "occurences of the variable in the files that kconfigreader used for generating the "
                     + "VariabilityModel.");
-
+    
+    private static final Logger LOGGER = Logger.get();
+    
     /**
      * The path to the linux source tree.
      */
-    private File linuxSourceTree;
+    private @NonNull File linuxSourceTree = new File(""); // will be initialized in init()
 
     /**
      * Signals whether source locations (the source of variables) should be
      * included in the variabilitymodel after extraction.
      */
-    private boolean findSourceLocations;
+    private boolean findSourceLocations; // will be initialized in init()
 
     /**
      * The architecture to analyze.
      */
-    private String arch;
+    private @NonNull String arch = ""; // will be initialized in init()
     
     /**
      * The directory where this extractor can store its resources. Not null.
      */
-    private File resourceDir;
+    private @NonNull File resourceDir = new File("");  // will be initialized in init()
+    
+    private @NonNull DumpconfVersion dumpconfVersion = DumpconfVersion.LINUX; // will be initialized in init()
     
     @Override
     protected void init(@NonNull Configuration config) throws SetUpException {
         linuxSourceTree = config.getValue(DefaultSettings.SOURCE_TREE);
-        arch = config.getValue(DefaultSettings.ARCH);
+        String arch = config.getValue(DefaultSettings.ARCH);
         if (arch == null) {
             throw new SetUpException("Config does not contain arch setting");
         }
+        this.arch = arch;
         
         config.registerSetting(FIND_LOCATIONS);
         findSourceLocations = config.getValue(FIND_LOCATIONS);
+        
+        config.registerSetting(DUMPCONF_VERSION);
+        dumpconfVersion = config.getValue(DUMPCONF_VERSION);
 
         resourceDir = Util.getExtractorResourceDir(config, getClass());
     }
@@ -87,7 +136,7 @@ public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
         File outputBase = null;
 
         try {
-            KconfigReaderWrapper wrapper = new KconfigReaderWrapper(resourceDir, linuxSourceTree);
+            KconfigReaderWrapper wrapper = new KconfigReaderWrapper(resourceDir, linuxSourceTree, dumpconfVersion);
 
             boolean makeSuccess = wrapper.prepareLinux();
             if (!makeSuccess) {

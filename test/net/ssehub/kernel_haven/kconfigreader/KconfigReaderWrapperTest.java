@@ -18,6 +18,7 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
+import net.ssehub.kernel_haven.kconfigreader.KconfigReaderExtractor.DumpconfVersion;
 import net.ssehub.kernel_haven.util.Util;
 
 /**
@@ -43,7 +44,7 @@ public class KconfigReaderWrapperTest {
     @Before
     public void setUp() {
         RESOURCE_DIR.mkdir();
-        wrapper = new KconfigReaderWrapper(RESOURCE_DIR, LINUX_DIR);
+        wrapper = new KconfigReaderWrapper(RESOURCE_DIR, LINUX_DIR, DumpconfVersion.LINUX);
     }
 
     /**
