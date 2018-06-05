@@ -25,6 +25,7 @@ import net.ssehub.kernel_haven.variability_model.SourceLocation;
 import net.ssehub.kernel_haven.variability_model.VariabilityModelDescriptor;
 import net.ssehub.kernel_haven.variability_model.VariabilityModel;
 import net.ssehub.kernel_haven.variability_model.VariabilityVariable;
+import net.ssehub.kernel_haven.variability_model.VariabilityModelDescriptor.Attribute;
 import net.ssehub.kernel_haven.variability_model.VariabilityModelDescriptor.ConstraintFileType;
 import net.ssehub.kernel_haven.variability_model.VariabilityModelDescriptor.VariableType;
 
@@ -180,11 +181,11 @@ public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
         VariabilityModelDescriptor descriptor = result.getDescriptor();
         descriptor.setVariableType(VariableType.BOOLEAN);
         descriptor.setConstraintFileType(ConstraintFileType.DIMACS);
-        descriptor.setHasConstraintUsage(true);
+        descriptor.addAttribute(Attribute.CONSTRAINT_USAGE);
 
         if (findSourceLocations) {
             findSourceLocations(result);
-            descriptor.setHasSourceLoactions(true);
+            descriptor.addAttribute(Attribute.SOURCE_LOCATIONS);
         }
 
         return result;
