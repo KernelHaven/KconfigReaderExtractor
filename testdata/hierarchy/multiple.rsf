@@ -1,0 +1,27 @@
+
+.
+<submenu>
+<menu flags="0">
+<symbol type="boolean" flags="41216" id="14350288">
+<name>A</name>
+<property type="?"><expr>S@14350288</expr></property>
+<property type="prompt"><text><![CDATA[CONFIG_A]]></text></property>
+</symbol>
+</menu>
+<submenu>
+<menu flags="0">
+<symbol type="boolean" flags="41216" id="14350896">
+<name>B</name>
+<property type="?"><expr>S@14350896</expr><visible><expr>S@14350288</expr></visible></property>
+<property type="prompt"><text><![CDATA[CONFIG_B]]></text><visible><expr>S@14350288</expr></visible></property>
+</symbol>
+<dep>S@14350288</dep></menu>
+<menu flags="0">
+<symbol type="boolean" flags="41216" id="14351536">
+<name>C</name>
+<property type="?"><expr>S@14351536</expr><visible><expr>S@14350288</expr></visible></property>
+<property type="prompt"><text><![CDATA[CONFIG_C]]></text><visible><expr>S@14350288</expr></visible></property>
+</symbol>
+<dep>S@14350288</dep></menu>
+</submenu>
+</submenu>

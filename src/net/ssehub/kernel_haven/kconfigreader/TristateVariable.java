@@ -8,6 +8,7 @@ import java.util.Map;
 import net.ssehub.kernel_haven.util.FormatException;
 import net.ssehub.kernel_haven.util.null_checks.NonNull;
 import net.ssehub.kernel_haven.util.null_checks.Nullable;
+import net.ssehub.kernel_haven.variability_model.HierarchicalVariable;
 import net.ssehub.kernel_haven.variability_model.SourceLocation;
 import net.ssehub.kernel_haven.variability_model.VariabilityVariable;
 import net.ssehub.kernel_haven.variability_model.VariabilityVariableSerializer;
@@ -20,7 +21,7 @@ import net.ssehub.kernel_haven.variability_model.VariabilityVariableSerializerFa
  * @author Adam
  * @author Moritz
  */
-public class TristateVariable extends VariabilityVariable {
+public class TristateVariable extends HierarchicalVariable {
     
     static {
         // this block is called by the infrastructure, see loadClasses.txt

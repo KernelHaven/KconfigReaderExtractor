@@ -1,0 +1,6 @@
+config A
+	bool "CONFIG_A"
+
+config B
+	bool "CONFIG_B"
+	depends on A

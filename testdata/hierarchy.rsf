@@ -1,0 +1,77 @@
+
+.
+<submenu>
+<menu flags="0">
+<symbol type="boolean" flags="41216" id="10983376">
+<name>TOP_VAR</name>
+<property type="?"><expr>S@10983376</expr></property>
+<property type="prompt"><text><![CDATA[Toplevel variable]]></text></property>
+</symbol>
+</menu>
+<menu flags="0">
+<symbol type="boolean" flags="41216" id="10984000">
+<name>A</name>
+<property type="?"><expr>S@10984000</expr></property>
+<property type="prompt"><text><![CDATA[Toplevel variable2]]></text></property>
+</symbol>
+</menu>
+<menu flags="0">
+<symbol type="boolean" flags="41216" id="10984624">
+<name>NESTED_VAR1</name>
+<property type="?"><expr>S@10984624</expr><visible><expr>S@10983376</expr></visible></property>
+<property type="prompt"><text><![CDATA[Nested variable 1]]></text><visible><expr>S@10983376</expr></visible></property>
+</symbol>
+<dep>S@10983376</dep></menu>
+<menu flags="0">
+<symbol type="boolean" flags="41216" id="10985280">
+<name>NESTED_VAR2</name>
+<property type="?"><expr>S@10985280</expr><visible><expr>S@10983376</expr></visible></property>
+<property type="prompt"><text><![CDATA[Nested variable 2]]></text><visible><expr>S@10983376</expr></visible></property>
+</symbol>
+<dep>S@10983376</dep></menu>
+<submenu>
+<menu flags="0">
+<symbol type="boolean" flags="41216" id="10985936">
+<name>NESTED_VAR3</name>
+<property type="?"><expr>S@10985936</expr><visible><expr>S@10985280</expr></visible></property>
+<property type="prompt"><text><![CDATA[Nested variable 3]]></text><visible><expr>S@10985280</expr></visible></property>
+</symbol>
+<dep>S@10985280</dep></menu>
+<submenu>
+<menu flags="0">
+<dep>S@10985936</dep></menu>
+<menu flags="0">
+<symbol type="boolean" flags="41216" id="10986736">
+<name>B</name>
+<property type="?"><expr>S@10986736</expr><visible><expr>S@10985936</expr></visible></property>
+<property type="prompt"><text><![CDATA[Variable3]]></text><visible><expr>S@10985936</expr></visible></property>
+</symbol>
+<dep>S@10985936</dep></menu>
+</submenu>
+<menu flags="0">
+<symbol type="boolean" flags="45072" id="10987280">
+<property type="?"><expr>S@10987280</expr><visible><expr>S@10985280</expr></visible></property>
+<property type="choice"><expr>(S@10988016 ^ (S@10988624))</expr><visible><expr>S@10985280</expr></visible></property>
+<property type="prompt"><text><![CDATA[blubb]]></text><visible><expr>S@10985280</expr></visible></property>
+</symbol>
+<dep>S@10985280</dep></menu>
+<submenu>
+<menu flags="0">
+<symbol type="boolean" flags="41248" id="10988016">
+<name>VAL1</name>
+<property type="?"><expr>S@10988016</expr><visible><expr>S@10987280</expr></visible></property>
+<property type="prompt"><text><![CDATA[Val1]]></text><visible><expr>S@10987280</expr></visible></property>
+<property type="choice"><expr>S@10987280</expr></property>
+</symbol>
+<dep>S@10987280</dep></menu>
+<menu flags="0">
+<symbol type="boolean" flags="41248" id="10988624">
+<name>VAL2</name>
+<property type="?"><expr>S@10988624</expr><visible><expr>S@10987280</expr></visible></property>
+<property type="prompt"><text><![CDATA[Val2]]></text><visible><expr>S@10987280</expr></visible></property>
+<property type="choice"><expr>S@10987280</expr></property>
+</symbol>
+<dep>S@10987280</dep></menu>
+</submenu>
+</submenu>
+</submenu>

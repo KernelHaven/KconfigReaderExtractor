@@ -3,6 +3,7 @@ package net.ssehub.kernel_haven.kconfigreader;
 import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -16,7 +17,9 @@ import org.junit.Test;
 
 import net.ssehub.kernel_haven.util.FormatException;
 import net.ssehub.kernel_haven.util.null_checks.NonNull;
+import net.ssehub.kernel_haven.variability_model.HierarchicalVariable;
 import net.ssehub.kernel_haven.variability_model.VariabilityModel;
+import net.ssehub.kernel_haven.variability_model.VariabilityModelDescriptor.Attribute;
 import net.ssehub.kernel_haven.variability_model.VariabilityVariable;
 
 /**
@@ -310,6 +313,153 @@ public class ConverterTest {
         usedInVars.add(d);
         assertThat(e.getUsedInConstraintsOfOtherVariables(), is(usedInVars)); // usedInVars = {d}
         
+    }
+    
+    /**
+     * Tests that the hierarchy is correctly represented.
+     * 
+     * @throws FormatException unwanted.
+     * @throws IOException unwanted.
+     */
+    @Test
+    @SuppressWarnings("null")
+    public void testHierarchySimple() throws IOException, FormatException {
+        Converter converter = init(new File("testdata/hierarchy/simple"));
+        VariabilityModel vm = converter.convert();
+        
+        assertThat(vm.getDescriptor().hasAttribute(Attribute.HIERARCHICAL), is(true));
+        
+        assertThat(vm.getVariables().size(), is(3)); // 2 + CONFIG_MODULE
+        
+        HierarchicalVariable a = (HierarchicalVariable) vm.getVariableMap().get("CONFIG_A");
+        HierarchicalVariable b = (HierarchicalVariable) vm.getVariableMap().get("CONFIG_B");
+        
+        assertThat(a, notNullValue());
+        assertThat(b, notNullValue());
+        
+        assertSame(a.getChildren(), set(b));
+        assertThat(a.getParent(), nullValue());
+        assertThat(a.getNestingDepth(), is(0));
+        
+        assertSame(b.getChildren(), set());
+        assertThat(b.getParent().getName(), is(a.getName()));
+        assertThat(b.getNestingDepth(), is(1));
+    }
+    
+    /**
+     * Tests that the hierarchy is correctly represented.
+     * 
+     * @throws FormatException unwanted.
+     * @throws IOException unwanted.
+     */
+    @Test
+    @SuppressWarnings("null")
+    public void testHierarchyMultiple() throws IOException, FormatException {
+        Converter converter = init(new File("testdata/hierarchy/multiple"));
+        VariabilityModel vm = converter.convert();
+        
+        assertThat(vm.getDescriptor().hasAttribute(Attribute.HIERARCHICAL), is(true));
+        
+        assertThat(vm.getVariables().size(), is(4)); // 3 + CONFIG_MODULE
+        
+        HierarchicalVariable a = (HierarchicalVariable) vm.getVariableMap().get("CONFIG_A");
+        HierarchicalVariable b = (HierarchicalVariable) vm.getVariableMap().get("CONFIG_B");
+        HierarchicalVariable c = (HierarchicalVariable) vm.getVariableMap().get("CONFIG_C");
+        
+        assertThat(a, notNullValue());
+        assertThat(b, notNullValue());
+        assertThat(c, notNullValue());
+        
+        assertSame(a.getChildren(), set(b, c));
+        assertThat(a.getParent(), nullValue());
+        assertThat(a.getNestingDepth(), is(0));
+        
+        assertSame(b.getChildren(), set());
+        assertThat(b.getParent().getName(), is(a.getName()));
+        assertThat(b.getNestingDepth(), is(1));
+        
+        assertSame(c.getChildren(), set());
+        assertThat(c.getParent().getName(), is(a.getName()));
+        assertThat(c.getNestingDepth(), is(1));
+    }
+    
+    /**
+     * Tests that the hierarchy is correctly represented.
+     * 
+     * @throws FormatException unwanted.
+     * @throws IOException unwanted.
+     */
+    @Test
+    @SuppressWarnings("null")
+    public void testHierarchyAlternating() throws IOException, FormatException {
+        Converter converter = init(new File("testdata/hierarchy/alternating"));
+        VariabilityModel vm = converter.convert();
+        
+        assertThat(vm.getDescriptor().hasAttribute(Attribute.HIERARCHICAL), is(true));
+        
+        assertThat(vm.getVariables().size(), is(5)); // 4 + CONFIG_MODULE
+        
+        HierarchicalVariable a = (HierarchicalVariable) vm.getVariableMap().get("CONFIG_A");
+        HierarchicalVariable b = (HierarchicalVariable) vm.getVariableMap().get("CONFIG_B");
+        HierarchicalVariable c = (HierarchicalVariable) vm.getVariableMap().get("CONFIG_C");
+        HierarchicalVariable d = (HierarchicalVariable) vm.getVariableMap().get("CONFIG_D");
+        
+        assertThat(a, notNullValue());
+        assertThat(b, notNullValue());
+        assertThat(c, notNullValue());
+        assertThat(d, notNullValue());
+        
+        assertSame(a.getChildren(), set(b, d));
+        assertThat(a.getParent(), nullValue());
+        assertThat(a.getNestingDepth(), is(0));
+
+        assertSame(b.getChildren(), set(c));
+        assertThat(b.getParent().getName(), is(a.getName()));
+        assertThat(b.getNestingDepth(), is(1));
+
+        assertSame(c.getChildren(), set());
+        assertThat(c.getParent().getName(), is(b.getName()));
+        assertThat(c.getNestingDepth(), is(2));
+        
+        assertSame(d.getChildren(), set());
+        assertThat(d.getParent().getName(), is(a.getName()));
+        assertThat(d.getNestingDepth(), is(1));
+    }
+    
+    /**
+     * Asserts that the two sets of variables are the same (compares the names).
+     * 
+     * @param actual The actual set.
+     * @param expected The expected set.
+     */
+    private void assertSame(Set<HierarchicalVariable> actual, Set<HierarchicalVariable> expected) {
+        Set<String> actualNames = new HashSet<>();
+        for (HierarchicalVariable var : actual) {
+            actualNames.add(var.getName());
+        }
+        Set<String> expectedNames = new HashSet<>();
+        for (HierarchicalVariable var : expected) {
+            expectedNames.add(var.getName());
+        }
+        
+        assertThat(actualNames, is(expectedNames));
+    }
+    
+    /**
+     * Creates a set from varargs.
+     * 
+     * @param ts The varargs.
+     * @param <T> The type of varargs.
+     * 
+     * @return A set with the varargs.
+     */
+    @SafeVarargs
+    private static <T> Set<T> set(T... ts) {
+        Set<T> set = new HashSet<>();
+        for (T t : ts) {
+            set.add(t);
+        }
+        return set;
     }
     
 }

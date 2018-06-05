@@ -1,0 +1,31 @@
+c 7 B
+c 5 TOP_VAR
+c 9 MODULES
+c 1 NESTED_VAR3
+c 8 NESTED_VAR1
+c 6 VAL1
+c 4 CHOICE_1
+c 3 VAL2
+c 2 NESTED_VAR2
+p cnf 9 21
+-1 2 0
+-1 2 0
+-3 4 0
+-3 4 0
+-2 5 0
+-2 5 0
+-6 4 0
+-6 4 0
+-7 1 0
+-7 1 0
+-4 2 0
+-2 4 0
+-4 2 0
+-4 2 0
+-8 5 0
+-8 5 0
+3 6 -4 0
+-3 4 0
+-6 4 0
+-3 -6 0
+-9 0

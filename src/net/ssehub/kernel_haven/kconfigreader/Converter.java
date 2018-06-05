@@ -11,6 +11,7 @@ import java.io.LineNumberReader;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -28,7 +29,12 @@ import net.ssehub.kernel_haven.util.FormatException;
 import net.ssehub.kernel_haven.util.Util;
 import net.ssehub.kernel_haven.util.null_checks.NonNull;
 import net.ssehub.kernel_haven.util.null_checks.Nullable;
+import net.ssehub.kernel_haven.variability_model.HierarchicalVariable;
 import net.ssehub.kernel_haven.variability_model.VariabilityModel;
+import net.ssehub.kernel_haven.variability_model.VariabilityModelDescriptor;
+import net.ssehub.kernel_haven.variability_model.VariabilityModelDescriptor.Attribute;
+import net.ssehub.kernel_haven.variability_model.VariabilityModelDescriptor.ConstraintFileType;
+import net.ssehub.kernel_haven.variability_model.VariabilityModelDescriptor.VariableType;
 import net.ssehub.kernel_haven.variability_model.VariabilityVariable;
 
 /**
@@ -65,7 +71,9 @@ public class Converter {
      * Maps variable names to a set of IDs that appear in the variable's conditions.
      */
     private Map<@NonNull String, Set<@NonNull String>> usedVariables;
-
+    
+    private LinkedList<@Nullable HierarchicalVariable> submenuStack;
+    
     /**
      * Creates a new converter for the given DIMACS file.
      * 
@@ -91,9 +99,10 @@ public class Converter {
      *             If the DIMACS file has the wrong format.
      */
     public @NonNull VariabilityModel convert() throws IOException, FormatException {
-        Set<@NonNull VariabilityVariable> dimacsVars = readVariables();
+        Set<@NonNull VariabilityVariable> dimacsVars = readDimacsVariables();
         idToName = new HashMap<>();
         usedVariables = new HashMap<>();
+        submenuStack = new LinkedList<>();
         Map<@NonNull String, VariabilityVariable> variables = readRsfVariables();
         
         // for every variable we found in the DIMACS file, search the variable found in RSF and set
@@ -114,7 +123,7 @@ public class Converter {
                     // is not defined in the Kconfig files (I personally consider this a bug)
                     // to work around the edge case, that Kconfig does not contain CONFIG_MODULES, we create this
                     // variable here
-                    var = new VariabilityVariable("CONFIG_MODULES", "bool");
+                    var = new HierarchicalVariable("CONFIG_MODULES", "bool");
                     variables.put(name, var);
                     
                 } else {
@@ -142,6 +151,11 @@ public class Converter {
         dimacsCopy.deleteOnExit();
         
         VariabilityModel result = new VariabilityModel(dimacsCopy, variables);
+        VariabilityModelDescriptor descriptor = result.getDescriptor();
+        descriptor.setVariableType(VariableType.BOOLEAN);
+        descriptor.setConstraintFileType(ConstraintFileType.DIMACS);
+        descriptor.addAttribute(Attribute.CONSTRAINT_USAGE);
+        descriptor.addAttribute(Attribute.HIERARCHICAL);
         return result;
     }
     
@@ -239,7 +253,7 @@ public class Converter {
      *             If the symbol doesn't have a flags attribute, or it isn't an
      *             integer.
      */
-    private boolean hasFlag(@NonNull Node symbol, int flag) throws FormatException {
+    private boolean hasRsfFlag(@NonNull Node symbol, int flag) throws FormatException {
         try {
             String flagsStr = symbol.getAttributes().getNamedItem("flags").getTextContent();
 
@@ -262,7 +276,7 @@ public class Converter {
      * 
      * @throws FormatException If the menu element is invalid.
      */
-    private @Nullable Node getSymbol(@NonNull Node menu) throws FormatException {
+    private @Nullable Node getRsfSymbol(@NonNull Node menu) throws FormatException {
         Node symbol = null;
         
         for (Node menuChild : nodeIterator(menu)) {
@@ -300,7 +314,7 @@ public class Converter {
      * 
      * @return The used variable IDs.
      */
-    private @NonNull Set<@NonNull String> readUsedIds(@NonNull String textContent, @NonNull String currentId) {
+    private @NonNull Set<@NonNull String> readRsfUsedIds(@NonNull String textContent, @NonNull String currentId) {
         Set<@NonNull String> result = new HashSet<>();
         
         Matcher m = ID_PATTERN.matcher(textContent);
@@ -324,10 +338,10 @@ public class Converter {
      * @throws FormatException
      *             If the format is invalid.
      */
-    private void readMenu(@NonNull Node menu, @NonNull Map<@NonNull String, VariabilityVariable> result)
+    private void readRsfMenu(@NonNull Node menu, @NonNull Map<@NonNull String, VariabilityVariable> result)
             throws FormatException {
         
-        Node symbol = getSymbol(menu);
+        Node symbol = getRsfSymbol(menu);
         if (symbol == null) {
             return;
         }
@@ -335,7 +349,7 @@ public class Converter {
         // attributes
         String type = symbol.getAttributes().getNamedItem("type").getTextContent();
         String id = "S@" + symbol.getAttributes().getNamedItem("id").getTextContent();
-        boolean choice = hasFlag(symbol, 0x0010);
+        boolean choice = hasRsfFlag(symbol, 0x0010);
         
         if (type.equals("boolean")) {
             type = "bool";
@@ -357,7 +371,7 @@ public class Converter {
                 break;
 
             case "property":
-                usedIds.addAll(readUsedIds(notNull(symbolChild.getTextContent()), id));
+                usedIds.addAll(readRsfUsedIds(notNull(symbolChild.getTextContent()), id));
                 break;
 
             case "#text":
@@ -380,16 +394,40 @@ public class Converter {
         }
 
         name = "CONFIG_" + name;
+        createRsfVariable(id, name, type, usedIds, result);
+    }
+    
+    /**
+     * Called by {@link #readRsfMenu(Node, Map)} when a variable is found.
+     * 
+     * @param id The ID of the variable.
+     * @param name The name of the variable.
+     * @param type The type of the variable.
+     * @param usedIds The IDs used in the constraints of this variable.
+     * @param result The result map to add the created variable to.
+     */
+    private void createRsfVariable(@NonNull String id, @NonNull String name, @NonNull String type,
+            @NonNull Set<@NonNull String> usedIds, @NonNull Map<@NonNull String, VariabilityVariable> result) {
         idToName.put(id, name);
         usedVariables.put(name, usedIds);
 
-        VariabilityVariable var;
+        HierarchicalVariable var;
         if (type.equals("tristate")) {
             var = new TristateVariable(name);
         } else {
-            var = new VariabilityVariable(name, type);
+            var = new HierarchicalVariable(name, type);
         }
         result.put(name, var);
+        
+        // replace head of stack with this new variable
+        submenuStack.removeFirst();
+        submenuStack.addFirst(var);
+        
+        // the variable above us is the parent
+        if (submenuStack.size() >= 2) {
+            HierarchicalVariable parent = submenuStack.get(1);
+            var.setParent(parent);
+        }
     }
 
     /**
@@ -402,18 +440,19 @@ public class Converter {
      * @throws FormatException
      *             If the format is invalid.
      */
-    private void readSubMenu(@NonNull Node submenu, @NonNull Map<@NonNull String, VariabilityVariable> result)
+    private void readRsfSubMenu(@NonNull Node submenu, @NonNull Map<@NonNull String, VariabilityVariable> result)
             throws FormatException {
         
+        submenuStack.push(null);
         for (Node node : nodeIterator(submenu)) {
 
             switch (node.getNodeName()) {
             case "submenu":
-                readSubMenu(node, result);
+                readRsfSubMenu(node, result);
                 break;
 
             case "menu":
-                readMenu(node, result);
+                readRsfMenu(node, result);
                 break;
 
             case "#text":
@@ -424,6 +463,7 @@ public class Converter {
                 throw new FormatException("Unexpected tag in structure: " + node.getNodeName());
             }
         }
+        submenuStack.pop();
     }
 
     /**
@@ -465,7 +505,7 @@ public class Converter {
                     throw new FormatException("Top level element is not a submenu");
                 }
 
-                readSubMenu(element, result);
+                readRsfSubMenu(element, result);
 
 //                ByteArrayOutputStream out = new ByteArrayOutputStream();
 //                Transformer t = TransformerFactory.newInstance().newTransformer();
@@ -493,7 +533,7 @@ public class Converter {
      * @throws FormatException
      *             If the file has not the correct format.
      */
-    private @NonNull Set<@NonNull VariabilityVariable> readVariables() throws IOException, FormatException {
+    private @NonNull Set<@NonNull VariabilityVariable> readDimacsVariables() throws IOException, FormatException {
         LineNumberReader in = null;
         variableCache = new HashMap<>();
 
@@ -515,7 +555,7 @@ public class Converter {
                     throw new FormatException("Expected comment line starting with \"c\" at line "
                             + in.getLineNumber());
                 }
-                readVariable(elements, in.getLineNumber());
+                readDimacsVariable(elements, in.getLineNumber());
 
             }
         } finally {
@@ -539,7 +579,7 @@ public class Converter {
                 
                 if (tri.getDimacsNumber() == 0) { // if we haven't found the non _MODULE part
                     // replace this variable with a boolean one
-                    VariabilityVariable newVar = new VariabilityVariable(tri.getName() + "_MODULE", "bool",
+                    VariabilityVariable newVar = new HierarchicalVariable(tri.getName() + "_MODULE", "bool",
                             tri.getModuleNumber());
                     var = newVar;
                 }
@@ -554,7 +594,7 @@ public class Converter {
     }
 
     /**
-     * Reads the given line and adds the variable to the cache.
+     * Reads the given line from the DIMACS file and adds the variable to the cache.
      * 
      * @param elements
      *            The parts read from the line. Must not be null.
@@ -563,7 +603,8 @@ public class Converter {
      * @throws FormatException
      *             If the number is not parseable.
      */
-    private void readVariable(@NonNull String @NonNull [] elements, int currentLineNumber) throws FormatException {
+    private void readDimacsVariable(@NonNull String @NonNull [] elements, int currentLineNumber)
+            throws FormatException {
         int number = -1;
         try {
             number = Integer.parseInt(elements[1]);
@@ -596,7 +637,7 @@ public class Converter {
             if (!variableCache.containsKey(name)) {
                 // we haven't found a module part yet, so we assume it is
                 // boolean for now
-                variableCache.put(name, new VariabilityVariable(name, "bool", number));
+                variableCache.put(name, new HierarchicalVariable(name, "bool", number));
             } else {
                 // we already found the module part, so we just set the number
                 // for the boolean part
