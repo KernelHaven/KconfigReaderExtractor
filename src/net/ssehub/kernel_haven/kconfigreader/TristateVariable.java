@@ -9,9 +9,9 @@ import net.ssehub.kernel_haven.util.FormatException;
 import net.ssehub.kernel_haven.util.null_checks.NonNull;
 import net.ssehub.kernel_haven.util.null_checks.Nullable;
 import net.ssehub.kernel_haven.variability_model.HierarchicalVariable;
+import net.ssehub.kernel_haven.variability_model.HierarchicalVariableSerializer;
 import net.ssehub.kernel_haven.variability_model.SourceLocation;
 import net.ssehub.kernel_haven.variability_model.VariabilityVariable;
-import net.ssehub.kernel_haven.variability_model.VariabilityVariableSerializer;
 import net.ssehub.kernel_haven.variability_model.VariabilityVariableSerializerFactory;
 
 /**
@@ -138,7 +138,7 @@ public class TristateVariable extends HierarchicalVariable {
     /**
      * A serializer for {@link TristateVariable}s.
      */
-    private static class TristateVariableSerializer extends VariabilityVariableSerializer {
+    private static class TristateVariableSerializer extends HierarchicalVariableSerializer {
 
         @Override
         protected @NonNull List<@NonNull String> serializeImpl(@NonNull VariabilityVariable variable) {
@@ -155,7 +155,7 @@ public class TristateVariable extends HierarchicalVariable {
             VariabilityVariable variable = super.deserializeImpl(csv);
             
             try {
-                TristateVariable result = new TristateVariable(variable, Integer.parseInt(csv[DEFAULT_SIZE]));
+                TristateVariable result = new TristateVariable(variable, Integer.parseInt(csv[HIERARCHICAL_SIZE]));
                 
                 return result;
                 
@@ -166,8 +166,8 @@ public class TristateVariable extends HierarchicalVariable {
         
         @Override
         protected void checkLength(@NonNull String @NonNull [] csv) throws FormatException {
-            if (csv.length != DEFAULT_SIZE + 1) {
-                throw new FormatException("Expected " +  (DEFAULT_SIZE + 1) + " fields");
+            if (csv.length != HIERARCHICAL_SIZE + 1) {
+                throw new FormatException("Expected " +  (HIERARCHICAL_SIZE + 1) + " fields");
             }
         }
         
