@@ -176,14 +176,13 @@ public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
             deleteAllFiles(outputBase);
         }
         
-       LOGGER.logInfo2("Location setting is set to", findSourceLocations);
         if (findSourceLocations) {
-           LOGGER.logInfo2("Add locations");
             findSourceLocations(result);
             
             VariabilityModelDescriptor descriptor = result.getDescriptor();
             descriptor.addAttribute(Attribute.SOURCE_LOCATIONS);
         }
+       LOGGER.logInfo2("Location setting is set to", result.getDescriptor().hasAttribute(Attribute.SOURCE_LOCATIONS));
 
         return result;
     }
