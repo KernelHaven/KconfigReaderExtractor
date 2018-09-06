@@ -2,7 +2,6 @@ package net.ssehub.kernel_haven.kconfigreader;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 import java.io.BufferedReader;
@@ -14,11 +13,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.After;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import net.ssehub.kernel_haven.kconfigreader.KconfigReaderExtractor.DumpconfVersion;
+import net.ssehub.kernel_haven.test_utils.RunOnlyOnLinux;
 import net.ssehub.kernel_haven.util.Util;
 
 /**
@@ -30,6 +30,7 @@ import net.ssehub.kernel_haven.util.Util;
  * @author Manu
  */
 @SuppressWarnings("null")
+@RunWith(RunOnlyOnLinux.class)
 public class KconfigReaderWrapperTest {
 
     private static final File LINUX_DIR = new File("testdata/pseudoLinux/");
@@ -58,31 +59,6 @@ public class KconfigReaderWrapperTest {
     }
 
     /**
-     * Tests if prepareLinux actually is called.
-     * 
-     * @throws IOException
-     *             unwanted.
-     */
-    @Test
-    public void testPrepareLinux() throws IOException {
-        Assume.assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("win"));
-
-        assertThat(wrapper.prepareLinux(), is(true));
-
-        File logfile = new File(LINUX_DIR, "test.log");
-        assertThat(logfile.isFile(), is(true));
-
-        BufferedReader br = new BufferedReader(new FileReader(logfile));
-        assertThat(br.readLine(), is("Make allyesconfig called"));
-        assertThat(br.readLine(), is("Make prepare called"));
-        assertThat(br.readLine(), nullValue());
-
-        // cleanup
-        br.close();
-        logfile.delete();
-    }
-
-    /**
      * Tests if dumpconf.exe is created by compileDumpconf and if the file is
      * executable.
      * 
@@ -91,8 +67,6 @@ public class KconfigReaderWrapperTest {
      */
     @Test
     public void testCompileDumpconf() throws IOException {
-        Assume.assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("win"));
-
         File dumpconfExe = wrapper.compileDumpconf();
 
         assertThat(dumpconfExe.isFile(), is(true));
@@ -110,8 +84,6 @@ public class KconfigReaderWrapperTest {
      */
     @Test
     public void testRunKconfigReader() throws IOException {
-        Assume.assumeFalse(System.getProperty("os.name").toLowerCase().startsWith("win"));
-
         File dumpconfExe = new File("testdata/dumpconf");
 
         // prerequisites

@@ -10,8 +10,9 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 @SuiteClasses({
     ConverterTest.class,
-    KconfigReaderWrapperTest.class,
     KconfigReaderExtractorTest.class,
+    KconfigReaderWrapperTest.class,
+    KconfigReaderExtractorTestLinux.class,
     })
 public class AllTests {
     

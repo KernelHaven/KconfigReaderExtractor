@@ -1,23 +1,24 @@
 package net.ssehub.kernel_haven.kconfigreader;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
+import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import net.ssehub.kernel_haven.SetUpException;
+import net.ssehub.kernel_haven.test_utils.RunOnlyOnLinux;
 import net.ssehub.kernel_haven.test_utils.TestConfiguration;
+import net.ssehub.kernel_haven.util.ExtractorException;
 import net.ssehub.kernel_haven.util.Util;
-import net.ssehub.kernel_haven.variability_model.SourceLocation;
 import net.ssehub.kernel_haven.variability_model.VariabilityModel;
 import net.ssehub.kernel_haven.variability_model.VariabilityVariable;
 
@@ -30,7 +31,8 @@ import net.ssehub.kernel_haven.variability_model.VariabilityVariable;
  *
  */
 @SuppressWarnings("null")
-public class KconfigReaderExtractorTest {
+@RunWith(RunOnlyOnLinux.class)
+public class KconfigReaderExtractorTestLinux {
     
     private static final File RESOURCE_DIR = new File("testdata/tmp_res");
     
@@ -53,14 +55,13 @@ public class KconfigReaderExtractorTest {
     }
     
     /**
-     * tests whether codelocations are found and assigned to variables
-     * correctly.
+     * Tests a full extractor execution on testdata/pseudoLinux.
      * 
-     * @throws SetUpException
-     *             unwanted.
+     * @throws SetUpException unwanted.
+     * @throws ExtractorException unwanted.
      */
     @Test
-    public void testSourceLocation() throws SetUpException {
+    public void testFullRunPseudoLinux() throws SetUpException, ExtractorException {
         Properties props = new Properties();
 
         props.setProperty("resource_dir", RESOURCE_DIR.getPath());
@@ -70,26 +71,23 @@ public class KconfigReaderExtractorTest {
 
         KconfigReaderExtractor extractor = new KconfigReaderExtractor();
         extractor.init(config);
-
-        Set<VariabilityVariable> variables = new HashSet<>();
-        variables.add(new VariabilityVariable("CONFIG_A", "bool"));
-        variables.add(new VariabilityVariable("CONFIG_B", "bool"));
-        variables.add(new VariabilityVariable("CONFIG_D", "bool"));
-
-        VariabilityModel vm = new VariabilityModel(null, variables);
-
-        extractor.findSourceLocations(vm);
-
-        assertThat(vm.getVariableMap().get("CONFIG_A").getSourceLocations().size(), is(1));
-        assertThat(vm.getVariableMap().get("CONFIG_A").getSourceLocations().get(0),
-                is(new SourceLocation(new File("Kconfig"), 1)));
-
-        assertThat(vm.getVariableMap().get("CONFIG_B").getSourceLocations().size(), is(1));
-        assertThat(vm.getVariableMap().get("CONFIG_B").getSourceLocations().get(0),
-                is(new SourceLocation(new File("Kconfig"), 4)));
-
-        assertThat(vm.getVariableMap().get("CONFIG_D").getSourceLocations(), nullValue());
-
+        
+        VariabilityModel vm = extractor.runOnFile(new File("testdata/pseudoLinux"));
+        
+        assertThat(vm.getConstraintModel(), notNullValue());
+        assertThat(vm.getConstraintModel().isFile(), is(true));
+        
+        Map<String, VariabilityVariable> vars = vm.getVariableMap();
+        assertThat(vars.get("CONFIG_A"), notNullValue());
+        assertThat(vars.get("CONFIG_B"), notNullValue());
+        assertThat(vars.get("CONFIG_C"), notNullValue());
+        assertThat(vars.get("CONFIG_MODULES"), notNullValue());
+        assertThat(vars.size(), is(4));
+        
+        assertThat(vars.get("CONFIG_A").getType(), is("bool"));
+        assertThat(vars.get("CONFIG_B").getType(), is("bool"));
+        assertThat(vars.get("CONFIG_C").getType(), is("tristate"));
+        assertThat(vars.get("CONFIG_MODULES").getType(), is("bool"));
     }
-
+    
 }
