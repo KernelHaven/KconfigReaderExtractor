@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,6 +21,7 @@ import net.ssehub.kernel_haven.util.FormatException;
 import net.ssehub.kernel_haven.util.Logger;
 import net.ssehub.kernel_haven.util.Util;
 import net.ssehub.kernel_haven.util.null_checks.NonNull;
+import net.ssehub.kernel_haven.util.null_checks.Nullable;
 import net.ssehub.kernel_haven.variability_model.AbstractVariabilityModelExtractor;
 import net.ssehub.kernel_haven.variability_model.SourceLocation;
 import net.ssehub.kernel_haven.variability_model.VariabilityModel;
@@ -74,7 +76,14 @@ public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
      */
     public static final @NonNull EnumSetting<@NonNull DumpconfVersion> DUMPCONF_VERSION
             = new EnumSetting<>("variability.extractor.dumpconf_version", DumpconfVersion.class, true,
-                    DumpconfVersion.LINUX, "TODO"); // TODO: description
+                    DumpconfVersion.LINUX, "Defines which version of dumpconf to use. Choose this based on which "
+                    + "product line to analyze.");
+    
+    public static final @NonNull Setting<@Nullable List<@NonNull String>> EXTRA_MAKE_PARAMETERS
+            = new Setting<>("variability.extractor.extra_make_parameters", Setting.Type.STRING_LIST, false, null,
+                    "Defines list of extra parameters to pass to make. These will be inserted between 'make' and"
+                    + " 'allyesconfig prepare'. For example, you could set this to \"CC=gcc-4.8\" to set a specific "
+                    + "compiler to use (only for the 'make allyesconfig prepare' call!).");
     
     /**
      * A setting that specifies whether to find code locations of the variables or not.
@@ -110,6 +119,8 @@ public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
     
     private @NonNull DumpconfVersion dumpconfVersion = DumpconfVersion.LINUX; // will be initialized in init()
     
+    private @Nullable List<@NonNull String> extraMakeParameters;
+    
     @Override
     protected void init(@NonNull Configuration config) throws SetUpException {
         linuxSourceTree = config.getValue(DefaultSettings.SOURCE_TREE);
@@ -124,6 +135,9 @@ public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
         
         config.registerSetting(DUMPCONF_VERSION);
         dumpconfVersion = config.getValue(DUMPCONF_VERSION);
+        
+        config.registerSetting(EXTRA_MAKE_PARAMETERS);
+        extraMakeParameters = config.getValue(EXTRA_MAKE_PARAMETERS);
 
         resourceDir = Util.getExtractorResourceDir(config, getClass());
     }
@@ -136,6 +150,7 @@ public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
 
         try {
             KconfigReaderWrapper wrapper = new KconfigReaderWrapper(resourceDir, linuxSourceTree, dumpconfVersion);
+            wrapper.setExtraMakeParameters(extraMakeParameters);
 
             boolean makeSuccess = wrapper.prepareLinux();
             if (!makeSuccess) {
