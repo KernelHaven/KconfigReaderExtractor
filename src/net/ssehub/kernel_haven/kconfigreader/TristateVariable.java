@@ -1,19 +1,12 @@
 package net.ssehub.kernel_haven.kconfigreader;
 
-import static net.ssehub.kernel_haven.util.null_checks.NullHelpers.notNull;
-
 import java.util.List;
 import java.util.Map;
 
-import net.ssehub.kernel_haven.config.Configuration;
-import net.ssehub.kernel_haven.util.FormatException;
 import net.ssehub.kernel_haven.util.null_checks.NonNull;
 import net.ssehub.kernel_haven.util.null_checks.Nullable;
 import net.ssehub.kernel_haven.variability_model.HierarchicalVariable;
-import net.ssehub.kernel_haven.variability_model.HierarchicalVariableSerializer;
 import net.ssehub.kernel_haven.variability_model.SourceLocation;
-import net.ssehub.kernel_haven.variability_model.VariabilityVariable;
-import net.ssehub.kernel_haven.variability_model.VariabilityVariableSerializerFactory;
 
 /**
  * A variability variable of type tristate. This additionally saves the DIMACS
@@ -24,13 +17,8 @@ import net.ssehub.kernel_haven.variability_model.VariabilityVariableSerializerFa
  */
 public class TristateVariable extends HierarchicalVariable {
     
-    static {
-        // this block is called by the infrastructure, see loadClasses.txt
-        
-        VariabilityVariableSerializerFactory.INSTANCE.registerSerializer(notNull(TristateVariable.class.getName()),
-                new TristateVariableSerializer());
-    }
-
+    private static final long serialVersionUID = 797460760210025032L;
+    
     private int moduleNumber;
 
     /**
@@ -58,25 +46,6 @@ public class TristateVariable extends HierarchicalVariable {
     public TristateVariable(@NonNull String name, int dimacsNumber, int moduleNumber) {
         super(name, "tristate", dimacsNumber);
         this.moduleNumber = moduleNumber;
-    }
-
-    /**
-     * Creates a tristate variable from a given VariabilityVariable.
-     * 
-     * @param var
-     *            the variability variable.
-     * @param moduleNumber
-     *            the tristate module number.
-     */
-    private TristateVariable(@NonNull VariabilityVariable var, int moduleNumber) {
-        this(var.getName(), var.getDimacsNumber(), moduleNumber);
-
-        List<@NonNull SourceLocation> sourceLocations = var.getSourceLocations();
-        if (sourceLocations != null) {
-            for (SourceLocation location : sourceLocations) {
-                this.addLocation(location);
-            }
-        }
     }
 
     /**
@@ -136,51 +105,4 @@ public class TristateVariable extends HierarchicalVariable {
         return result;
     }
 
-    /**
-     * A serializer for {@link TristateVariable}s.
-     */
-    private static class TristateVariableSerializer extends HierarchicalVariableSerializer {
-
-        @Override
-        protected @NonNull List<@NonNull String> serializeImpl(@NonNull VariabilityVariable variable) {
-            TristateVariable triVar = (TristateVariable) variable;
-            
-            List<@NonNull String> result = super.serializeImpl(variable);
-            result.add(notNull(String.valueOf(triVar.moduleNumber)));
-            
-            return result;
-        }
-        
-        @Override
-        protected @NonNull VariabilityVariable deserializeImpl(@NonNull String @NonNull [] csv) throws FormatException {
-            VariabilityVariable variable = super.deserializeImpl(csv);
-            
-            try {
-                TristateVariable result = new TristateVariable(variable, Integer.parseInt(csv[HIERARCHICAL_SIZE]));
-                
-                return result;
-                
-            } catch (NumberFormatException e) {
-                throw new FormatException(e);
-            }
-        }
-        
-        @Override
-        protected void checkLength(@NonNull String @NonNull [] csv) throws FormatException {
-            if (csv.length != HIERARCHICAL_SIZE + 1) {
-                throw new FormatException("Expected " +  (HIERARCHICAL_SIZE + 1) + " fields");
-            }
-        }
-        
-    }
-    
-    /**
-     * Initialization method called by KernelHaven. See loadClasses.txt
-     * 
-     * @param config The global pipeline configuration.
-     */
-    public static void initialize(@NonNull Configuration config) {
-        // everything already done in the static block
-    }
-    
 }
