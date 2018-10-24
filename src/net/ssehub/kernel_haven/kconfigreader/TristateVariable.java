@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 import net.ssehub.kernel_haven.util.FormatException;
+import net.ssehub.kernel_haven.util.io.json.JsonNumber;
+import net.ssehub.kernel_haven.util.io.json.JsonObject;
 import net.ssehub.kernel_haven.util.null_checks.NonNull;
 import net.ssehub.kernel_haven.util.null_checks.Nullable;
 import net.ssehub.kernel_haven.variability_model.HierarchicalVariable;
@@ -115,6 +117,23 @@ public class TristateVariable extends HierarchicalVariable {
             }
         }
         return result;
+    }
+    
+    @Override
+    protected @NonNull JsonObject toJson() {
+        JsonObject result = super.toJson();
+        
+        result.putElement("dimacsModuleNumber", new JsonNumber(moduleNumber));
+        
+        return result;
+    }
+    
+    @Override
+    protected void setJsonData(@NonNull JsonObject data, Map<@NonNull String, VariabilityVariable> vars)
+            throws FormatException {
+        super.setJsonData(data, vars);
+        
+        this.moduleNumber = data.getInt("dimacsModuleNumber");
     }
 
     @Override
