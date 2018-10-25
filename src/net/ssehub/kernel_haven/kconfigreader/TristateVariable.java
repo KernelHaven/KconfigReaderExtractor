@@ -137,6 +137,7 @@ public class TristateVariable extends HierarchicalVariable {
     }
 
     @Override
+    @Deprecated
     protected @NonNull List<@NonNull String> getSerializationData() {
         List<@NonNull String> data = super.getSerializationData();
         
@@ -146,6 +147,7 @@ public class TristateVariable extends HierarchicalVariable {
     }
     
     @Override
+    @Deprecated
     protected void setSerializationData(@NonNull List<@NonNull String> data,
             @NonNull Map<@NonNull String, VariabilityVariable> variables) throws FormatException {
         
