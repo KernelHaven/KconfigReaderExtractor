@@ -28,3 +28,11 @@ This plugin is licensed under [GPLv3](https://www.gnu.org/licenses/gpl-3.0.html)
 
 Another license would be possible with the following restriction:
 * The plugin contains KconfigReader which is under GPLv3. We do not link against KconfigReader, so technically we are not infected by GPL. However a release under a license other than GPLv3 would require the removal of the contained KconfigReader.
+
+## Used Tools
+
+The following tools are used (and bundled in `res/`) by this plugin:
+
+| Tool | Version | License |
+|------|---------|---------|
+| [kconfigreader](https://github.com/ckaestne/kconfigreader.git) | [2016-07-01 (913bf31)](https://github.com/ckaestne/kconfigreader/commit/913bf3178af5a8ac8bedc5e8733561ed38280cf9) | [GPLv3](https://www.gnu.org/licenses/gpl.html) |
