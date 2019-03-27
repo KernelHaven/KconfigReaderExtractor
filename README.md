@@ -1,6 +1,6 @@
 # KconfigReaderExtractor
 
-![Build Status](https://jenkins.sse.uni-hildesheim.de/buildStatus/icon?job=KernelHaven_KconfigReaderExtractor)
+![Build Status](https://jenkins-2.sse.uni-hildesheim.de/buildStatus/icon?job=KH_KconfigReaderExtractor)
 
 A variability-model extractor for [KernelHaven](https://github.com/KernelHaven/KernelHaven).
 
@@ -12,7 +12,7 @@ This extractor reads the Kconfig model of the Linux Kernel. To do that, it has t
 
 ## Usage
 
-Place [`KconfigReaderExtractor.jar`](https://jenkins.sse.uni-hildesheim.de/view/KernelHaven/job/KernelHaven_KconfigReaderExtractor/lastSuccessfulBuild/artifact/build/jar/KconfigReaderExtractor.jar) in the plugins folder of KernelHaven.
+Place [`KconfigReaderExtractor.jar`](https://jenkins-2.sse.uni-hildesheim.de/view/KernelHaven/job/KH_KconfigReaderExtractor/lastSuccessfulBuild/artifact/build/jar/KconfigReaderExtractor.jar) in the plugins folder of KernelHaven.
 
 To use this extractor, set `variability.extractor.class` to `net.ssehub.kernel_haven.kconfigreader.KconfigReaderExtractor` in the KernelHaven properties.
 
