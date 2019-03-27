@@ -99,10 +99,12 @@ public class KconfigReaderWrapper {
         File dumpconfExe = File.createTempFile("dumpconf", ".exe");
         
         ProcessBuilder processBuilder = new ProcessBuilder("gcc",
-                dumpconfSource.getAbsolutePath(),
-                linuxSourceTree.getAbsolutePath() + "/scripts/kconfig/zconf.tab.o",
+                "-fPIC",
                 "-I", linuxSourceTree.getAbsolutePath() + "/scripts/kconfig/",
-                "-o", dumpconfExe.getAbsolutePath());
+                "-o", dumpconfExe.getAbsolutePath(),
+                linuxSourceTree.getAbsolutePath() + "/scripts/kconfig/zconf.tab.o",
+                dumpconfSource.getAbsolutePath()
+        );
 
         boolean success = Util.executeProcess(processBuilder, "gcc");
 
