@@ -2,7 +2,23 @@
  * Copyright (C) 2014 Christian Kaestner
  * Inspired by prior version by Reinhart Tartler
  * Released under the terms of the GNU GPL v2.0.
+ *
+ * Modified for KernelHaven by Adam Krafczyk
  */
+
+/*
+ * Modifications for KernelHaven extractor:
+ *     - The compiler passes a KH_COMPILE_FOR_* flag to signal which kind of source tree should be analyzed (e.g.
+ *       LINUX or BUSYBOX).
+ *     - These flags are used throughout this file where there need to be adaptations for different source tree types
+ *     - The following lines make sure that exactly one correct value was passed to us. 
+ */
+#if !defined(KH_COMPILE_FOR_LINUX) && !defined(KH_COMPILE_FOR_BUSYBOX)
+	#error Pass at least one correct KH_COMPILE_FOR_* flag with -D
+#endif
+#if defined(KH_COMPILE_FOR_LINUX) && defined(KH_COMPILE_FOR_BUSYBOX)
+	#error Pass only one correct KH_COMPILE_FOR_* flag with -D
+#endif
 
 #include <locale.h>
 #include <ctype.h>
@@ -41,7 +57,9 @@ char* getPropType(enum prop_type t) {
         case P_CHOICE: return "choice";
         case P_SELECT: return "select";
         case P_RANGE: return "range";
-       // case P_ENV: return "env";
+#ifdef KH_COMPILE_FOR_LINUX
+        case P_ENV: return "env";
+#endif
 //        case P_SYMBOL: return "symbol";
 	}
 	return "?";
@@ -104,7 +122,11 @@ if (!e) {fprintf(out, "ERROR"); return;}
 		dumpexpr(out, e->right.expr);
 		fprintf(out, ")");
 		break;
+#if defined(KH_COMPILE_FOR_LINUX)
+	case E_LIST:
+#elif defined(KH_COMPILE_FOR_BUSYBOX)
 	case E_CHOICE:
+#endif
 		fprintf(out, "(");
 		dumpsymref(out, e->right.sym);
 		if (e->left.expr) {

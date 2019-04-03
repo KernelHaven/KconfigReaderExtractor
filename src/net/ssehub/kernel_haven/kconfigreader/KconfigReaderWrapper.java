@@ -91,14 +91,14 @@ public class KconfigReaderWrapper {
         LOGGER.logDebug("compileDumpconf() called");
         
         // extract dumpconf.c to temporary file
-        File dumpconfSource = new File(resourceDir, dumpconfVersion.getFilename());
+        File dumpconfSource = new File(resourceDir, "dumpconf.c");
         if (!dumpconfSource.isFile()) {
-            Util.extractJarResourceToFile("net/ssehub/kernel_haven/kconfigreader/res/" + dumpconfVersion.getFilename(),
-                    dumpconfSource);
+            Util.extractJarResourceToFile("net/ssehub/kernel_haven/kconfigreader/res/dumpconf.c", dumpconfSource);
         }
         File dumpconfExe = File.createTempFile("dumpconf", ".exe");
         
         ProcessBuilder processBuilder = new ProcessBuilder("gcc",
+                "-D" + dumpconfVersion.getCompileFlag(),
                 "-fPIC",
                 "-I", linuxSourceTree.getAbsolutePath() + "/scripts/kconfig/",
                 "-o", dumpconfExe.getAbsolutePath(),
@@ -107,6 +107,9 @@ public class KconfigReaderWrapper {
         );
 
         boolean success = Util.executeProcess(processBuilder, "gcc");
+        if (!success) {
+            dumpconfExe.delete();
+        }
 
         return success ? dumpconfExe : null;
     }

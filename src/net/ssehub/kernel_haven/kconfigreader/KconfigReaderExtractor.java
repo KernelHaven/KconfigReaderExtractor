@@ -44,28 +44,28 @@ public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
      */
     public static enum DumpconfVersion {
         
-        LINUX("dumpconf_linux.c"),
+        LINUX("KH_COMPILE_FOR_LINUX"),
         
-        BUSYBOX("dumpconf_busybox.c");
+        BUSYBOX("KH_COMPILE_FOR_BUSYBOX");
         
-        private @NonNull String filename;
+        private @NonNull String compileFlag;
         
         /**
          * Creates a dumpconf version.
          * 
-         * @param filename The filename of the dumpconf.c in the resource folder.
+         * @param compileFlag The flag to pass to the compiler to compile for this version (with -D)
          */
-        private DumpconfVersion(@NonNull String filename) {
-            this.filename = filename;
+        private DumpconfVersion(@NonNull String compileFlag) {
+            this.compileFlag = compileFlag;
         }
         
         /**
-         * The filename of the dumpconf.c in the resource folder.
+         * The flag to pass to the compiler via -D, that compiles dumpconf for this version.
          * 
-         * @return The filename of this dumpconf.c.
+         * @return The flag for this version.
          */
-        public @NonNull String getFilename() {
-            return filename;
+        public @NonNull String getCompileFlag() {
+            return compileFlag;
         }
         
     }
