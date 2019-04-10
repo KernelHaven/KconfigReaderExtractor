@@ -8,6 +8,10 @@
 
 /*
  * Modifications for KernelHaven extractor:
+ * - Fixed ID creation from pointers
+ *     - Previously, the pointers were simply cast to int
+ *     - Now, we properly hash the pointer value to 31 bits (signed integer that is never negative)
+ * - Support for Linux and Busybox
  *     - The compiler passes a KH_COMPILE_FOR_* flag to signal which kind of source tree should be analyzed (e.g.
  *       LINUX or BUSYBOX).
  *     - These flags are used throughout this file where there need to be adaptations for different source tree types
@@ -33,6 +37,9 @@
 #define LKC_DIRECT_LINK
 #include "lkc.h"
 
+u_int32_t hashptr(void * ptr) {
+	return ((u_int32_t) ((u_int64_t) ptr * 2654435761L) >> 1);
+}
 
 char* getSymType(enum symbol_type t) {
 	switch (t) {
@@ -80,7 +87,7 @@ void dumpsymref(FILE *out, struct symbol *s) {
 	else if (s->flags & SYMBOL_AUTO && !(s->flags & SYMBOL_CHOICE) && !(s->name)) //IGNORE
 		fprintf(out, "IGNORE");
 	else
-		fprintf(out, "S@%d", s);
+		fprintf(out, "S@%d", hashptr(s));
 }
 
 void dumpexpr(FILE *out, struct expr *e) {
@@ -173,7 +180,7 @@ void dumpprop(FILE *out, struct property *prop) {
 void dumpsymbol(FILE *out, struct symbol *sym) {
 	struct property *prop;
 	//while (sym) {
-		fprintf(out, "<symbol type=\"%s\" flags=\"%d\" id=\"%d\">\n", getSymType(sym->type), sym->flags, sym);
+		fprintf(out, "<symbol type=\"%s\" flags=\"%d\" id=\"%d\">\n", getSymType(sym->type), sym->flags, hashptr(sym));
 
 		if (sym->name)	
        		fprintf(out, "<name>%s</name>\n", sym->name);
