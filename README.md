@@ -20,7 +20,7 @@ To use this extractor, set `variability.extractor.class` to `net.ssehub.kernel_h
 
 In addition to KernelHaven, this plugin has the following dependencies:
 * Only runs on a Linux operating system
-* C compiler and `make`. On Ubuntu just install the `build-essential` package via: `sudo apt install build-essential`
+* C compiler and `make` to run `make allyesconfig prepare` in the Linux source tree. On Ubuntu just install the `build-essential` and `libelf-dev` packages via: `sudo apt install build-essential libelf-dev`
 
 ## License
 
