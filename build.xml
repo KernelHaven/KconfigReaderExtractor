@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- author: moritz, kevin -->
+<!-- Author: Adam, Sascha El-Sharkawy -->
 <project name="KconfigReaderExtractor" default="jenkins" basedir=".">
 	<description>A variability-model extractor based on the KconfigReader tool</description>
 
