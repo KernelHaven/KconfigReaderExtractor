@@ -16,8 +16,6 @@
  */
 package net.ssehub.kernel_haven.kconfigreader;
 
-import static net.ssehub.kernel_haven.util.null_checks.NullHelpers.notNull;
-
 import java.util.List;
 import java.util.Map;
 
@@ -152,33 +150,4 @@ public class TristateVariable extends HierarchicalVariable {
         this.moduleNumber = data.getInt("dimacsModuleNumber");
     }
 
-    @Override
-    @Deprecated
-    protected @NonNull List<@NonNull String> getSerializationData() {
-        List<@NonNull String> data = super.getSerializationData();
-        
-        data.add(0, notNull(String.valueOf(moduleNumber)));
-        
-        return data;
-    }
-    
-    @Override
-    @Deprecated
-    protected void setSerializationData(@NonNull List<@NonNull String> data,
-            @NonNull Map<@NonNull String, VariabilityVariable> variables) throws FormatException {
-        
-        if (data.isEmpty()) {
-            throw new FormatException("Expected at least one element");
-        }
-        
-        try {
-            this.moduleNumber = Integer.parseInt(data.remove(0));
-            
-        } catch (NumberFormatException e) {
-            throw new FormatException(e);
-        }
-        
-        super.setSerializationData(data, variables);
-    }
-    
 }
