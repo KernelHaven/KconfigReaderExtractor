@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 import net.ssehub.kernel_haven.kconfigreader.KconfigReaderExtractor.DumpconfVersion;
@@ -47,7 +48,7 @@ public class KconfigReaderWrapper {
 
     private @NonNull File linuxSourceTree;
     
-    private @Nullable List<@NonNull String> extraMakeParameters;
+    private @NonNull List<@NonNull String> extraMakeParameters;
     
     /**
      * Creates a new KconfigReaderWrapper.
@@ -61,15 +62,16 @@ public class KconfigReaderWrapper {
         this.resourceDir = resourceDir;
         this.linuxSourceTree = linuxSourceTree;
         this.dumpconfVersion = dumpconfVersion;
+        this.extraMakeParameters = new LinkedList<>();
     }
     
     /**
      * Sets a list of extra parameters to pass to make. These will be inserted between 'make' and
      * 'allyesconfig prepare'.
      * 
-     * @param extraMakeParameters The list of extra parameters. <code>null</code> if not needed.
+     * @param extraMakeParameters The list of extra parameters. Empty if not needed.
      */
-    public void setExtraMakeParameters(@Nullable List<@NonNull String> extraMakeParameters) {
+    public void setExtraMakeParameters(@NonNull List<@NonNull String> extraMakeParameters) {
         this.extraMakeParameters = extraMakeParameters;
     }
     
@@ -84,7 +86,7 @@ public class KconfigReaderWrapper {
         LOGGER.logDebug("prepareLinux() called");
         
         List<@NonNull String> parameters = new ArrayList<>(Arrays.asList("make", "allyesconfig", "prepare"));
-        if (extraMakeParameters != null) {
+        if (!extraMakeParameters.isEmpty()) {
             parameters.addAll(1, extraMakeParameters);
         }
         ProcessBuilder processBuilder = new ProcessBuilder(parameters.toArray(new String[0]));
