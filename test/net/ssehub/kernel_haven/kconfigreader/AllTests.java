@@ -29,6 +29,7 @@ import org.junit.runners.Suite.SuiteClasses;
     KconfigReaderExtractorTest.class,
     KconfigReaderWrapperTest.class,
     KconfigReaderExtractorTestLinux.class,
+    TristateVariableTest.class,
     })
 public class AllTests {
     

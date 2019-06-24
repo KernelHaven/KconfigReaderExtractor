@@ -115,7 +115,7 @@ public class TristateVariable extends HierarchicalVariable {
 
     @Override
     public int hashCode() {
-        return super.hashCode() + new Integer(moduleNumber).hashCode();
+        return super.hashCode() + Integer.hashCode(moduleNumber);
     }
 
     @Override
