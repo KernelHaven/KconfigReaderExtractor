@@ -139,6 +139,8 @@ public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
     
     private @NonNull List<@NonNull String> extraMakeParameters = new LinkedList<>(); // will be initialized in init()
     
+    private long timeout;
+    
     @Override
     protected void init(@NonNull Configuration config) throws SetUpException {
         linuxSourceTree = config.getValue(DefaultSettings.SOURCE_TREE);
@@ -158,6 +160,10 @@ public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
         extraMakeParameters = config.getValue(EXTRA_MAKE_PARAMETERS);
 
         resourceDir = Util.getExtractorResourceDir(config, getClass());
+        
+        // Use for the process the same timeout as for the calling provider (0 = no timeout)
+        config.registerSetting(DefaultSettings.VARIABILITY_PROVIDER_TIMEOUT);
+        timeout = config.getValue(DefaultSettings.VARIABILITY_PROVIDER_TIMEOUT);
     }
 
     @Override
@@ -181,7 +187,7 @@ public class KconfigReaderExtractor extends AbstractVariabilityModelExtractor {
             }
             dumpconfExe.deleteOnExit();
             
-            outputBase = wrapper.runKconfigReader(dumpconfExe, arch);
+            outputBase = wrapper.runKconfigReader(dumpconfExe, arch, timeout);
             dumpconfExe.delete();
             
             if (outputBase == null) {

@@ -106,7 +106,7 @@ public class KconfigReaderWrapperTest {
         dumpconfExe.setExecutable(true);
         assertThat(dumpconfExe.canExecute(), is(true));
 
-        File basepath = wrapper.runKconfigReader(dumpconfExe, "x86");
+        File basepath = wrapper.runKconfigReader(dumpconfExe, "x86", 0);
         assertThat(basepath, notNullValue());
 
         // features check

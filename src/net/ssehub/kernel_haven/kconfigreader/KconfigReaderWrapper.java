@@ -137,13 +137,14 @@ public class KconfigReaderWrapper {
      * 
      * @param dumpconfExe The compiled dumpconf executable file. Must not be <code>null</code>.
      * @param arch The architecture to analyze. Must not be <code>null</code>.
+     * @param timeout An optional timeout (in ms) for the process to stop (0 = no timeout).
      * 
      * @return The base path to the output files of KconfigReader. Append ".features", ".dimacs",
      *      etc. for the different output files. <code>null</code> if not successful.
      * 
      * @throws IOException If executing KconfigReader fails.
      */
-    public @Nullable File runKconfigReader(File dumpconfExe, String arch)
+    public @Nullable File runKconfigReader(File dumpconfExe, String arch, long timeout)
             throws IOException {
         LOGGER.logDebug("runKconfigReader() called");
         
@@ -168,7 +169,7 @@ public class KconfigReaderWrapper {
         processBuilder.environment().put("ARCH", arch);
         processBuilder.environment().put("SRCARCH", arch);
         
-        boolean success = Util.executeProcess(processBuilder, "KconfigReader");
+        boolean success = Util.executeProcess(processBuilder, "KconfigReader", timeout);
         
         if (!success) {
             KconfigReaderExtractor.deleteAllFiles(outputBase);
