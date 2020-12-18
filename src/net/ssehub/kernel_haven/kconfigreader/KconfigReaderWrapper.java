@@ -133,9 +133,9 @@ public class KconfigReaderWrapper {
                     + "try to fix it.");
                 
                 File makeFile = new File(linuxSourceTree, "Makefile");
-                String content = new String(Files.readString(makeFile.toPath()));
+                String content = new String(Files.readAllBytes(makeFile.toPath()));
                 content = content.replace("config %config:", "%config %config:");
-                Files.writeString(makeFile.toPath(), content);
+                Files.write(makeFile.toPath(), content.getBytes());
                 
                 processBuilder = createCompilationProcess(dumpconfSource, dumpconfExe);
                 success = Util.executeProcess(processBuilder, "gcc");
