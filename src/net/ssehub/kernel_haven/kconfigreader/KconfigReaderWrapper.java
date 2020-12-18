@@ -288,6 +288,7 @@ public class KconfigReaderWrapper {
                 }
                 
                 if (copied) {
+                    LOGGER.logDebug2("Created ", kconfigTrg.getAbsolutePath());
                     // Try again
                     try {
                         processBuilder = createKcReaderProcess(dumpconfExe, arch, kconfigReaderJar, outputBase);
@@ -300,6 +301,8 @@ public class KconfigReaderWrapper {
                     
                     // Clean-up copied file
                     //kconfigTrg.delete();
+                } else {
+                    LOGGER.logDebug2("Did not copy ", kconfigSrc.getAbsolutePath());
                 }
             }
         }
