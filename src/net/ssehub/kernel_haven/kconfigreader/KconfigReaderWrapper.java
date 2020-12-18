@@ -44,6 +44,7 @@ public class KconfigReaderWrapper {
     
     private static final Logger LOGGER = Logger.get();
     private static final String MISSING_KCONFIG_FILE = "assertion failed: kconfig file does not exist";
+    private static final String OBSOLETE_MAKE_SYNTAX = "*** mixed implicit and normal rules: deprecated syntax";
 
     private @NonNull DumpconfVersion dumpconfVersion;
     
@@ -118,6 +119,43 @@ public class KconfigReaderWrapper {
         }
         File dumpconfExe = File.createTempFile("dumpconf", ".exe");
         
+        ProcessBuilder processBuilder = createCompilationProcess(dumpconfSource, dumpconfExe);
+        ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+        ByteArrayOutputStream stderr = new ByteArrayOutputStream();
+        
+        boolean success = Util.executeProcess(processBuilder, "gcc", stdout, stderr, 0);
+        
+        if (!success && dumpconfVersion == DumpconfVersion.LINUX) {
+            // Old Linux versions may use an obsolete MAKE syntax, try to fix them according to
+            // https://www.programmersought.com/article/88083080956/
+            if (stdout.toString().contains(OBSOLETE_MAKE_SYNTAX) || stderr.toString().contains(OBSOLETE_MAKE_SYNTAX)) {
+                LOGGER.logInfo2("Dumpconf compilation crashed since the Makefile uses a deprecated syntax, "
+                    + "try to fix it.");
+                
+                File makeFile = new File(linuxSourceTree, "Makefile");
+                String content = new String(Files.readString(makeFile.toPath()));
+                content = content.replace("config %config:", "%config %config:");
+                Files.writeString(makeFile.toPath(), content);
+                
+                processBuilder = createCompilationProcess(dumpconfSource, dumpconfExe);
+                success = Util.executeProcess(processBuilder, "gcc");
+            }
+        }
+        
+        if (!success) {
+            dumpconfExe.delete();
+        }
+
+        return success ? dumpconfExe : null;
+    }
+
+    /**
+     * Creates a {@link ProcessBuilder} to compile dumpconf.
+     * @param dumpconfSource The path to the source code file.
+     * @param dumpconfExe The destination where the executable should be compiled to.
+     * @return The {@link ProcessBuilder} to create the process.
+     */
+    private @NonNull ProcessBuilder createCompilationProcess(File dumpconfSource, File dumpconfExe) {
         ProcessBuilder processBuilder = new ProcessBuilder("gcc",
                 "-D" + dumpconfVersion.getCompileFlag(),
                 "-fPIC",
@@ -126,13 +164,8 @@ public class KconfigReaderWrapper {
                 linuxSourceTree.getAbsolutePath() + "/scripts/kconfig/zconf.tab.o",
                 dumpconfSource.getAbsolutePath()
         );
-
-        boolean success = Util.executeProcess(processBuilder, "gcc");
-        if (!success) {
-            dumpconfExe.delete();
-        }
-
-        return success ? dumpconfExe : null;
+        
+        return processBuilder;
     }
     
     /**
@@ -162,7 +195,7 @@ public class KconfigReaderWrapper {
         File outputBase = File.createTempFile("kconfigreader_output", "");
         outputBase.delete();
         
-        ProcessBuilder processBuilder = createKcReaderProecess(dumpconfExe, arch, kconfigReaderJar, outputBase);       
+        ProcessBuilder processBuilder = createKcReaderProcess(dumpconfExe, arch, kconfigReaderJar, outputBase);       
         ByteArrayOutputStream stdout = new ByteArrayOutputStream();
         ByteArrayOutputStream stderr = new ByteArrayOutputStream();
         
@@ -191,7 +224,7 @@ public class KconfigReaderWrapper {
                 if (copied) {
                     // Try again
                     try {
-                        processBuilder = createKcReaderProecess(dumpconfExe, arch, kconfigReaderJar, outputBase);
+                        processBuilder = createKcReaderProcess(dumpconfExe, arch, kconfigReaderJar, outputBase);
                         success = Util.executeProcess(processBuilder, "KconfigReader", timeout);
                     } catch (IOException e) {
                         // Clean-up copied file
@@ -221,7 +254,7 @@ public class KconfigReaderWrapper {
      * @param outputBase The destination folder of the produced output
      * @return The {@link ProcessBuilder} to create the process.
      */
-    private @NonNull ProcessBuilder createKcReaderProecess(File dumpconfExe, String arch, File kconfigReaderJar,
+    private @NonNull ProcessBuilder createKcReaderProcess(File dumpconfExe, String arch, File kconfigReaderJar,
         File outputBase) {
         
         ProcessBuilder processBuilder = new ProcessBuilder("java", "-Xmx2G", "-cp",
