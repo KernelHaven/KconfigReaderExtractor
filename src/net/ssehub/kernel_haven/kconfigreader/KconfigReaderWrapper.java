@@ -294,12 +294,12 @@ public class KconfigReaderWrapper {
                         success = Util.executeProcess(processBuilder, "KconfigReader", timeout);
                     } catch (IOException e) {
                         // Clean-up copied file
-                        kconfigTrg.delete();
+                       // kconfigTrg.delete();
                         throw e;
                     }
                     
                     // Clean-up copied file
-                    kconfigTrg.delete();
+                    //kconfigTrg.delete();
                 }
             }
         }
