@@ -44,9 +44,8 @@ public class KconfigReaderWrapper {
     
     private static final Logger LOGGER = Logger.get();
     private static final String MISSING_KCONFIG_FILE = "assertion failed: kconfig file does not exist";
-    private static final String OBSOLETE_KCONFIG_GRAMMAR_ENV = "error: ‘P_ENV’ undeclared (first use in this function)";
-    private static final String OBSOLETE_KCONFIG_GRAMMAR_LIST = "error: ‘E_LIST’ "
-        + "undeclared (first use in this function)";
+    private static final String OBSOLETE_KCONFIG_GRAMMAR_ENV = "P_ENV";
+    private static final String OBSOLETE_KCONFIG_GRAMMAR_LIST = "E_LIST";
     private static final String OBSOLETE_MAKE_SYNTAX = "*** mixed implicit and normal rules: deprecated syntax";
 
     private @NonNull DumpconfVersion dumpconfVersion;
