@@ -108,6 +108,7 @@ public class KconfigReaderWrapper {
                 File makeFile = new File(linuxSourceTree, "Makefile");
                 String content = new String(Files.readAllBytes(makeFile.toPath()));
                 String modifiedContent = content.replace("config %config:", "%config %config:");
+                modifiedContent = modifiedContent.replace("/ %/: prepare scripts FORCE", "%/: prepare scripts FORCE");
                 Files.write(makeFile.toPath(), modifiedContent.getBytes());
                 
                 processBuilder = createPrepareProcess(parameters);
