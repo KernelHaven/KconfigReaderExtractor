@@ -16,8 +16,10 @@
  */
 package net.ssehub.kernel_haven.kconfigreader;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -41,6 +43,7 @@ import net.ssehub.kernel_haven.util.null_checks.Nullable;
 public class KconfigReaderWrapper {
     
     private static final Logger LOGGER = Logger.get();
+    private static final String MISSING_KCONFIG_FILE = "assertion failed: kconfig file does not exist";
 
     private @NonNull DumpconfVersion dumpconfVersion;
     
@@ -145,7 +148,8 @@ public class KconfigReaderWrapper {
      * @throws IOException If executing KconfigReader fails.
      */
     public @Nullable File runKconfigReader(File dumpconfExe, String arch, long timeout)
-            throws IOException {
+        throws IOException {
+        
         LOGGER.logDebug("runKconfigReader() called");
         
         // extract jar to run kconfigreader
@@ -158,24 +162,80 @@ public class KconfigReaderWrapper {
         File outputBase = File.createTempFile("kconfigreader_output", "");
         outputBase.delete();
         
-        ProcessBuilder processBuilder = new ProcessBuilder("java", "-Xmx2G", "-cp",
-                kconfigReaderJar.getAbsolutePath(), "de.fosd.typechef.kconfig.KConfigReader",
-                "--writeDimacs",
-                "--fast",
-                "--dumpconf", dumpconfExe.getAbsolutePath(),
-                linuxSourceTree.getAbsolutePath() + "/Kconfig",
-                outputBase.getAbsolutePath());
+        ProcessBuilder processBuilder = createKcReaderProecess(dumpconfExe, arch, kconfigReaderJar, outputBase);       
+        ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+        ByteArrayOutputStream stderr = new ByteArrayOutputStream();
         
-        processBuilder.environment().put("ARCH", arch);
-        processBuilder.environment().put("SRCARCH", arch);
+        boolean success = Util.executeProcess(processBuilder, "KconfigReader", stdout, stderr, timeout);
         
-        boolean success = Util.executeProcess(processBuilder, "KconfigReader", timeout);
+        if (!success && dumpconfVersion == DumpconfVersion.LINUX) {
+            // Old Linux versions may not have a top level Kconfig file, check if this was the case
+            if (stdout.toString().contains(MISSING_KCONFIG_FILE) || stderr.toString().contains(MISSING_KCONFIG_FILE)) {
+                LOGGER.logInfo2("KconfigReader crashed since there is no Kconfig file in root directory, "
+                    + "copying Kconfig file from arch directory to root.");
+                
+                // Copy Kconfig file from arch folder and try again
+                File kconfigSrc = new File(linuxSourceTree, "arch/" + arch + "/Kconfig");
+                File kconfigTrg = new File(linuxSourceTree, "Kconfig");
+                boolean copied = false;
+                if (kconfigSrc.exists() && !kconfigTrg.exists()) {
+                    try {
+                        Files.copy(kconfigSrc.toPath(), kconfigTrg.toPath());
+                    } catch (IOException e) {
+                        LOGGER.logException("Could not copy " + kconfigSrc.getAbsolutePath() + " to " + kconfigTrg, e);
+                    }
+                    
+                    copied = kconfigTrg.exists();
+                }
+                
+                if (copied) {
+                    // Try again
+                    try {
+                        processBuilder = createKcReaderProecess(dumpconfExe, arch, kconfigReaderJar, outputBase);
+                        success = Util.executeProcess(processBuilder, "KconfigReader", timeout);
+                    } catch (IOException e) {
+                        // Clean-up copied file
+                        kconfigTrg.delete();
+                        throw e;
+                    }
+                    
+                    // Clean-up copied file
+                    kconfigTrg.delete();
+                }
+            }
+        }
+        
         
         if (!success) {
             KconfigReaderExtractor.deleteAllFiles(outputBase);
         }
         
         return success ? outputBase : null;
+    }
+
+    /**
+     * Creates a {@link ProcessBuilder} to execute KconfigReader.
+     * @param dumpconfExe The pre-compiled dumpconf to be used ({@link #compileDumpconf()}).
+     * @param arch The architecture to extract.
+     * @param kconfigReaderJar The KconfigReader executable to use.
+     * @param outputBase The destination folder of the produced output
+     * @return The {@link ProcessBuilder} to create the process.
+     */
+    private @NonNull ProcessBuilder createKcReaderProecess(File dumpconfExe, String arch, File kconfigReaderJar,
+        File outputBase) {
+        
+        ProcessBuilder processBuilder = new ProcessBuilder("java", "-Xmx2G", "-cp",
+            kconfigReaderJar.getAbsolutePath(), "de.fosd.typechef.kconfig.KConfigReader",
+            "--writeDimacs",
+            "--fast",
+            "--dumpconf", dumpconfExe.getAbsolutePath(),
+            linuxSourceTree.getAbsolutePath() + "/Kconfig",
+            outputBase.getAbsolutePath());
+        
+        processBuilder.environment().put("ARCH", arch);
+        processBuilder.environment().put("SRCARCH", arch);
+        
+        return processBuilder;
     }
     
     
