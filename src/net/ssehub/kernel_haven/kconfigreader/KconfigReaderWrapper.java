@@ -93,10 +93,50 @@ public class KconfigReaderWrapper {
         if (!extraMakeParameters.isEmpty()) {
             parameters.addAll(1, extraMakeParameters);
         }
-        ProcessBuilder processBuilder = new ProcessBuilder(parameters.toArray(new String[0]));
-        processBuilder.directory(linuxSourceTree);
+        ProcessBuilder processBuilder = createPrepareProcess(parameters);
+        ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+        ByteArrayOutputStream stderr = new ByteArrayOutputStream();
+        boolean success = Util.executeProcess(processBuilder, "make", stdout, stderr, 0);
+        
+        if (!success && dumpconfVersion == DumpconfVersion.LINUX) {
+            // Old Linux versions may use an obsolete MAKE syntax, try to fix them according to
+            // https://www.programmersought.com/article/88083080956/
+            if (stdout.toString().contains(OBSOLETE_MAKE_SYNTAX) || stderr.toString().contains(OBSOLETE_MAKE_SYNTAX)) {
+                LOGGER.logInfo2("Linux preparation crashed since the Makefile uses a deprecated syntax, "
+                    + "try to fix it.");
+                
+                File makeFile = new File(linuxSourceTree, "Makefile");
+                String content = new String(Files.readAllBytes(makeFile.toPath()));
+                String modifiedContent = content.replace("config %config:", "%config %config:");
+                Files.write(makeFile.toPath(), modifiedContent.getBytes());
+                
+                processBuilder = createPrepareProcess(parameters);
+                try {
+                    success = Util.executeProcess(processBuilder, "make");
+                } catch (IOException e) {
+                    // Restore original content
+                    Files.write(makeFile.toPath(), content.getBytes());
+                    throw e;
+                }
+                
+                // Restore original content
+                Files.write(makeFile.toPath(), content.getBytes());
+            }
+        }
 
         return Util.executeProcess(processBuilder, "make");
+    }
+
+    /**
+     * Creates a {@link ProcessBuilder} to prepare Linux, which is required to be able to compile dumpconf.
+     * @param parameters The command to execute
+     * @return The {@link ProcessBuilder} to create the process.
+     */
+    private @NonNull ProcessBuilder createPrepareProcess(List<@NonNull String> parameters) {
+        ProcessBuilder processBuilder = new ProcessBuilder(parameters.toArray(new String[0]));
+        processBuilder.directory(linuxSourceTree);
+        
+        return processBuilder;
     }
         
     
@@ -119,53 +159,23 @@ public class KconfigReaderWrapper {
         }
         File dumpconfExe = File.createTempFile("dumpconf", ".exe");
         
-        ProcessBuilder processBuilder = createCompilationProcess(dumpconfSource, dumpconfExe);
-        ByteArrayOutputStream stdout = new ByteArrayOutputStream();
-        ByteArrayOutputStream stderr = new ByteArrayOutputStream();
+        ProcessBuilder processBuilder = new ProcessBuilder("gcc",
+            "-D" + dumpconfVersion.getCompileFlag(),
+            "-fPIC",
+            "-I", linuxSourceTree.getAbsolutePath() + "/scripts/kconfig/",
+            "-o", dumpconfExe.getAbsolutePath(),
+            linuxSourceTree.getAbsolutePath() + "/scripts/kconfig/zconf.tab.o",
+            dumpconfSource.getAbsolutePath()
+        );
+
         
-        boolean success = Util.executeProcess(processBuilder, "gcc", stdout, stderr, 0);
-        
-        if (!success && dumpconfVersion == DumpconfVersion.LINUX) {
-            // Old Linux versions may use an obsolete MAKE syntax, try to fix them according to
-            // https://www.programmersought.com/article/88083080956/
-            if (stdout.toString().contains(OBSOLETE_MAKE_SYNTAX) || stderr.toString().contains(OBSOLETE_MAKE_SYNTAX)) {
-                LOGGER.logInfo2("Dumpconf compilation crashed since the Makefile uses a deprecated syntax, "
-                    + "try to fix it.");
-                
-                File makeFile = new File(linuxSourceTree, "Makefile");
-                String content = new String(Files.readAllBytes(makeFile.toPath()));
-                content = content.replace("config %config:", "%config %config:");
-                Files.write(makeFile.toPath(), content.getBytes());
-                
-                processBuilder = createCompilationProcess(dumpconfSource, dumpconfExe);
-                success = Util.executeProcess(processBuilder, "gcc");
-            }
-        }
+        boolean success = Util.executeProcess(processBuilder, "gcc", 0);
         
         if (!success) {
             dumpconfExe.delete();
         }
 
         return success ? dumpconfExe : null;
-    }
-
-    /**
-     * Creates a {@link ProcessBuilder} to compile dumpconf.
-     * @param dumpconfSource The path to the source code file.
-     * @param dumpconfExe The destination where the executable should be compiled to.
-     * @return The {@link ProcessBuilder} to create the process.
-     */
-    private @NonNull ProcessBuilder createCompilationProcess(File dumpconfSource, File dumpconfExe) {
-        ProcessBuilder processBuilder = new ProcessBuilder("gcc",
-                "-D" + dumpconfVersion.getCompileFlag(),
-                "-fPIC",
-                "-I", linuxSourceTree.getAbsolutePath() + "/scripts/kconfig/",
-                "-o", dumpconfExe.getAbsolutePath(),
-                linuxSourceTree.getAbsolutePath() + "/scripts/kconfig/zconf.tab.o",
-                dumpconfSource.getAbsolutePath()
-        );
-        
-        return processBuilder;
     }
     
     /**
