@@ -44,6 +44,9 @@ public class KconfigReaderWrapper {
     
     private static final Logger LOGGER = Logger.get();
     private static final String MISSING_KCONFIG_FILE = "assertion failed: kconfig file does not exist";
+    private static final String OBSOLETE_KCONFIG_GRAMMAR_ENV = "error: ‘P_ENV’ undeclared (first use in this function)";
+    private static final String OBSOLETE_KCONFIG_GRAMMAR_LIST = "error: ‘E_LIST’ "
+        + "undeclared (first use in this function)";
     private static final String OBSOLETE_MAKE_SYNTAX = "*** mixed implicit and normal rules: deprecated syntax";
 
     private @NonNull DumpconfVersion dumpconfVersion;
@@ -101,7 +104,7 @@ public class KconfigReaderWrapper {
         if (!success && dumpconfVersion == DumpconfVersion.LINUX) {
             // Old Linux versions may use an obsolete MAKE syntax, try to fix them according to
             // https://www.programmersought.com/article/88083080956/
-            if (stdout.toString().contains(OBSOLETE_MAKE_SYNTAX) || stderr.toString().contains(OBSOLETE_MAKE_SYNTAX)) {
+            if (checkForOccurence(stdout, stderr, OBSOLETE_MAKE_SYNTAX)) {
                 LOGGER.logInfo2("Linux preparation crashed since the Makefile uses a deprecated syntax, "
                     + "try to fix it.");
                 
@@ -127,7 +130,7 @@ public class KconfigReaderWrapper {
 
         return Util.executeProcess(processBuilder, "make");
     }
-
+    
     /**
      * Creates a {@link ProcessBuilder} to prepare Linux, which is required to be able to compile dumpconf.
      * @param parameters The command to execute
@@ -139,8 +142,26 @@ public class KconfigReaderWrapper {
         
         return processBuilder;
     }
-        
     
+    /**
+     * Checks that all searches <tt>elements</tt> are entailed either in <tt>stdout</tt> or <tt>stderr</tt>.
+     * @param stdout The standard output of an executed process.
+     * @param stderr The error output of an executed process.
+     * @param elements The elements to search
+     * @return <tt>true</tt> if all elements where found or if elements was empty, <tt>false</tt> otherwise.
+     */
+    private boolean checkForOccurence(ByteArrayOutputStream stdout, ByteArrayOutputStream stderr, String... elements) {
+        String out = stdout.toString();
+        String err = stderr.toString();
+        boolean result = true;
+        if (null != elements && elements.length > 0) {
+            for (int i = 0; i < elements.length && result; i++) {
+                result = out.contains(elements[i]) || err.contains(elements[i]);
+            }
+        }
+        
+        return result;
+    }
     
     /**
      * Compiles dumpconf against the Linux tree.
@@ -160,6 +181,41 @@ public class KconfigReaderWrapper {
         }
         File dumpconfExe = File.createTempFile("dumpconf", ".exe");
         
+        ProcessBuilder processBuilder = createCompilationProcess(dumpconfSource, dumpconfExe, dumpconfVersion);
+        ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+        ByteArrayOutputStream stderr = new ByteArrayOutputStream();
+        
+        boolean success = Util.executeProcess(processBuilder, "gcc", stdout, stderr, 0);
+        if (!success && dumpconfVersion == DumpconfVersion.LINUX) {
+            // Old Linux versions may use an old Kconfig grammar, not supported by the the Linux version of dumpconf
+            if (checkForOccurence(stdout, stderr, OBSOLETE_KCONFIG_GRAMMAR_ENV, OBSOLETE_KCONFIG_GRAMMAR_LIST)) {
+                LOGGER.logInfo2("Dumpconf compilation crashed since the Kconfig uses an old syntax, "
+                    + "try to fix it.");
+                
+                // The old grammar is still used by Busybox -> Try to use its Dumpconf version
+                processBuilder = createCompilationProcess(dumpconfSource, dumpconfExe, DumpconfVersion.BUSYBOX);
+                success = Util.executeProcess(processBuilder, "make");
+            }
+        }
+        
+        if (!success) {
+            dumpconfExe.delete();
+        }
+
+        return success ? dumpconfExe : null;
+    }
+
+    /**
+     * Creates a {@link ProcessBuilder} to compile dumpconf.
+     * @param dumpconfSource The source code file to be compiled
+     * @param dumpconfExe The destination path of the compiled executable
+     * @param dumpconfVersion The version (preprocessor definitions) to sue for the compilation.
+     * 
+     * @return The {@link ProcessBuilder} to create the process.
+     */
+    private @NonNull ProcessBuilder createCompilationProcess(File dumpconfSource, File dumpconfExe,
+        DumpconfVersion dumpconfVersion) {
+        
         ProcessBuilder processBuilder = new ProcessBuilder("gcc",
             "-D" + dumpconfVersion.getCompileFlag(),
             "-fPIC",
@@ -168,15 +224,8 @@ public class KconfigReaderWrapper {
             linuxSourceTree.getAbsolutePath() + "/scripts/kconfig/zconf.tab.o",
             dumpconfSource.getAbsolutePath()
         );
-
         
-        boolean success = Util.executeProcess(processBuilder, "gcc", 0);
-        
-        if (!success) {
-            dumpconfExe.delete();
-        }
-
-        return success ? dumpconfExe : null;
+        return processBuilder;
     }
     
     /**
@@ -214,7 +263,7 @@ public class KconfigReaderWrapper {
         
         if (!success && dumpconfVersion == DumpconfVersion.LINUX) {
             // Old Linux versions may not have a top level Kconfig file, check if this was the case
-            if (stdout.toString().contains(MISSING_KCONFIG_FILE) || stderr.toString().contains(MISSING_KCONFIG_FILE)) {
+            if (checkForOccurence(stdout, stderr, MISSING_KCONFIG_FILE)) {
                 LOGGER.logInfo2("KconfigReader crashed since there is no Kconfig file in root directory, "
                     + "copying Kconfig file from arch directory to root.");
                 
