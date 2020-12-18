@@ -113,13 +113,20 @@ public class KconfigReaderWrapper {
                 modifiedContent = modifiedContent.replace("/ %/: prepare scripts FORCE", "%/: prepare scripts FORCE");
                 Files.write(makeFile.toPath(), modifiedContent.getBytes());
                 
-                processBuilder = createPrepareProcess(parameters);
-                try {
-                    success = Util.executeProcess(processBuilder, "make");
-                } catch (IOException e) {
-                    // Restore original content
-                    Files.write(makeFile.toPath(), content.getBytes());
-                    throw e;
+                success = !content.equals(modifiedContent);
+                
+                if (success) {
+                    LOGGER.logDebug(("Rewritten Makefile:\n" + modifiedContent).split("\n"));
+                    processBuilder = createPrepareProcess(parameters);
+                    try {
+                        success = Util.executeProcess(processBuilder, "make");
+                    } catch (IOException e) {
+                        // Restore original content
+                        Files.write(makeFile.toPath(), content.getBytes());
+                        throw e;
+                    }
+                } else {
+                    LOGGER.logWarning2("Could not detect any errors in ", makeFile.getAbsoluteFile());
                 }
                 
                 // Restore original content
@@ -193,7 +200,7 @@ public class KconfigReaderWrapper {
                 
                 // The old grammar is still used by Busybox -> Try to use its Dumpconf version
                 processBuilder = createCompilationProcess(dumpconfSource, dumpconfExe, DumpconfVersion.BUSYBOX);
-                success = Util.executeProcess(processBuilder, "make");
+                success = Util.executeProcess(processBuilder, "gcc");
             }
         }
         
