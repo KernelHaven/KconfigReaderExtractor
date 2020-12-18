@@ -122,7 +122,7 @@ public class KconfigReaderWrapper {
                         success = Util.executeProcess(processBuilder, "make");
                     } catch (IOException e) {
                         // Restore original content
-                        Files.write(makeFile.toPath(), content.getBytes());
+                  //      Files.write(makeFile.toPath(), content.getBytes());
                         throw e;
                     }
                 } else {
@@ -130,7 +130,7 @@ public class KconfigReaderWrapper {
                 }
                 
                 // Restore original content
-                Files.write(makeFile.toPath(), content.getBytes());
+                //Files.write(makeFile.toPath(), content.getBytes());
             }
         }
 
