@@ -30,6 +30,7 @@ import org.junit.runners.Suite.SuiteClasses;
     KconfigReaderWrapperTest.class,
     KconfigReaderExtractorTestLinux.class,
     TristateVariableTest.class,
+    UndoOperationTest.class,
     })
 public class AllTests {
     

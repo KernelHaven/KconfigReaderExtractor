@@ -118,23 +118,31 @@ public class KconfigReaderWrapper {
                 if (success) {
                     LOGGER.logDebug(("Rewritten Makefile:\n" + modifiedContent).split("\n"));
                     processBuilder = createPrepareProcess(parameters);
+                    UndoThread fileRevert = new UndoThread(5000) {
+                        
+                        @Override
+                        public void revertOperation() {
+                            try {
+                                Files.write(makeFile.toPath(), content.getBytes());
+                            } catch (IOException e) {
+                                LOGGER.logException("Could not revert " + makeFile.getAbsolutePath(), e);
+                            }
+                        }
+                    };
+                    
+                    // Try make script again and revert it afterwards
                     try {
                         success = Util.executeProcess(processBuilder, "make");
-                    } catch (IOException e) {
-                        // Restore original content
-                  //      Files.write(makeFile.toPath(), content.getBytes());
-                        throw e;
+                    } finally {
+                        fileRevert.runAndJoin();
                     }
                 } else {
                     LOGGER.logWarning2("Could not detect any errors in ", makeFile.getAbsoluteFile());
                 }
-                
-                // Restore original content
-                //Files.write(makeFile.toPath(), content.getBytes());
             }
         }
 
-        return Util.executeProcess(processBuilder, "make");
+        return success;
     }
     
     /**
@@ -289,18 +297,21 @@ public class KconfigReaderWrapper {
                 
                 if (copied) {
                     LOGGER.logDebug2("Created ", kconfigTrg.getAbsolutePath());
+                    UndoThread fileRevert = new UndoThread(5000) {
+                        
+                        @Override
+                        public void revertOperation() {
+                            kconfigTrg.delete();
+                        }
+                    };
+                    
                     // Try again
                     try {
                         processBuilder = createKcReaderProcess(dumpconfExe, arch, kconfigReaderJar, outputBase);
                         success = Util.executeProcess(processBuilder, "KconfigReader", timeout);
-                    } catch (IOException e) {
-                        // Clean-up copied file
-                       // kconfigTrg.delete();
-                        throw e;
+                    } finally {
+                        fileRevert.runAndJoin();
                     }
-                    
-                    // Clean-up copied file
-                    //kconfigTrg.delete();
                 } else {
                     LOGGER.logDebug2("Did not copy ", kconfigSrc.getAbsolutePath());
                 }
