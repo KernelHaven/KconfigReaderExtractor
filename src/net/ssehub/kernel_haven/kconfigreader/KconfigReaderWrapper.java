@@ -118,7 +118,7 @@ public class KconfigReaderWrapper {
                 if (success) {
                     LOGGER.logDebug(("Rewritten Makefile:\n" + modifiedContent).split("\n"));
                     processBuilder = createPrepareProcess(parameters);
-                    UndoThread fileRevert = new UndoThread(5000) {
+                    UndoThread fileRevert = new UndoThread(15000) {
                         
                         @Override
                         public void revertOperation() {
@@ -297,7 +297,7 @@ public class KconfigReaderWrapper {
                 
                 if (copied) {
                     LOGGER.logDebug2("Created ", kconfigTrg.getAbsolutePath());
-                    UndoThread fileRevert = new UndoThread(5000) {
+                    UndoThread fileRevert = new UndoThread(120000) {
                         
                         @Override
                         public void revertOperation() {
